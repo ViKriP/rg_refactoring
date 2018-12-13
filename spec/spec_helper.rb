@@ -5,6 +5,7 @@ SimpleCov.start do
   add_filter(%r{\/spec\/})
 end
 
+require './lib/banking/msgs'
 require './lib/banking/storage'
 require './lib/banking/tax'
 require './lib/banking/card'

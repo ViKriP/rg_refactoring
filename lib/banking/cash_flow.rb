@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Cash_flow
     def withdraw_money
     puts 'Choose the card for withdrawing:'
@@ -28,7 +30,8 @@ module Cash_flow
                     new_accounts.push(ac)
                   end
                 end
-                File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+                save_data(@file_path, new_accounts)
+                #File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
                 puts "Money #{a2&.to_i.to_i} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}$"
                 return
               else
@@ -82,7 +85,8 @@ module Cash_flow
                     new_accounts.push(ac)
                   end
                 end
-                File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+                save_data(@file_path, new_accounts)
+                #File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
                 puts "Money #{a2&.to_i.to_i} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}"
                 return
               end
@@ -168,7 +172,8 @@ module Cash_flow
               new_accounts.push(recipient)
             end
           end
-          File.open('accounts.yml', 'w') { |f| f.write new_accounts.to_yaml } #Storing
+          save_data('../../accounts.yml', new_accounts)
+          #File.open('accounts.yml', 'w') { |f| f.write new_accounts.to_yaml } #Storing
           puts "Money #{a3&.to_i.to_i}$ was put on #{sender_card[:number]}. Balance: #{recipient_balance}. Tax: #{put_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
           puts "Money #{a3&.to_i.to_i}$ was put on #{a2}. Balance: #{sender_balance}. Tax: #{sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
           break
@@ -178,5 +183,4 @@ module Cash_flow
       end
     end
   end
-
 end

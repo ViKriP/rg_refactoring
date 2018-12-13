@@ -1,4 +1,5 @@
-#module Banking
+# frozen_string_literal: true
+
 module Card
   def show_cards
     if @current_account.card.any?
@@ -12,44 +13,22 @@ module Card
 
   def create_card
     loop do
-      puts 'You could create one of 3 card types'
-      puts '- Usual card. 2% tax on card INCOME. 20$ tax on SENDING money from this card. 5% tax on WITHDRAWING money. For creation this card - press `usual`'
-      puts '- Capitalist card. 10$ tax on card INCOME. 10% tax on SENDING money from this card. 4$ tax on WITHDRAWING money. For creation this card - press `capitalist`'
-      puts '- Virtual card. 1$ tax on card INCOME. 1$ tax on SENDING money from this card. 12% tax on WITHDRAWING money. For creation this card - press `virtual`'
-      puts '- For exit - press `exit`'
-
+      CREATE_CARD_MSG.each { |msg| puts msg }
       ct = gets.chomp
-      if ct == 'usual' || ct == 'capitalist' || ct == 'virtual'
-        if ct == 'usual'
-          card = {
-            type: 'usual',
-            number: 16.times.map{ rand(10) }.join,
-            balance: 50.00
-          }
-        elsif ct == 'capitalist'
-          card = {
-            type: 'capitalist',
-            number: 16.times.map{rand(10)}.join,
-            balance: 100.00
-          }
-        elsif ct == 'virtual'
-          card = {
-            type: 'virtual',
-            number: 16.times.map{rand(10)}.join,
-            balance: 150.00
-          }
+      if %w(usual capitalist virtual).include?(ct)
+        case ct
+        when 'usual' then card = { type: 'usual', number: Array.new(16) { rand(10) }.join, balance: 50.00 }
+        when 'capitalist' then card = { type: 'capitalist', number: Array.new(16) { rand(10) }.join, balance: 100.00 }
+        when 'virtual' then card = { type: 'virtual', number: Array.new(16) { rand(10) }.join, balance: 150.00 }
         end
         cards = @current_account.card << card
-        @current_account.card = cards #important!!!
+        @current_account.card = cards
         new_accounts = []
         accounts.each do |ac|
-          if ac.login == @current_account.login
-            new_accounts.push(@current_account)
-          else
-            new_accounts.push(ac)
-          end
+          ac.login == @current_account.login ? new_accounts.push(@current_account) :
+          new_accounts.push(ac)
         end
-        File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+        save_data(@file_path, new_accounts)
         break
       else
         puts "Wrong card type. Try again!\n"
@@ -68,10 +47,10 @@ module Card
         puts "press `exit` to exit\n"
         answer = gets.chomp
         break if answer == 'exit'
-        if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i > 0
+
+        if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
           puts "Are you sure you want to delete #{@current_account.card[answer&.to_i.to_i - 1][:number]}?[y/n]"
-          a2 = gets.chomp
-          if a2 == 'y'
+          if gets.chomp == 'y'
             @current_account.card.delete_at(answer&.to_i.to_i - 1)
             new_accounts = []
             accounts.each do |ac|
@@ -81,7 +60,7 @@ module Card
                 new_accounts.push(ac)
               end
             end
-            File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+            save_data(@file_path, new_accounts)
             break
           else
             return
@@ -95,5 +74,4 @@ module Card
       end
     end
   end
-
 end

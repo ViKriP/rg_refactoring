@@ -1,11 +1,15 @@
 require 'simplecov'
-require 'undercover'
+#require 'undercover'
 
 SimpleCov.start do
   add_filter(%r{\/spec\/})
 end
 
-require_relative '../account'
+require './lib/banking/storage'
+require './lib/banking/tax'
+require './lib/banking/card'
+require './lib/banking/cash_flow'
+require './lib/banking/account'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

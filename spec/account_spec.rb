@@ -1,3 +1,5 @@
+require 'spec_helper'
+module Banking
 RSpec.describe Account do
   OVERRIDABLE_FILENAME = 'spec/fixtures/account.yml'.freeze
 
@@ -806,4 +808,5 @@ RSpec.describe Account do
       end
     end
   end
+end
 end

@@ -2,7 +2,7 @@
 
 module Storage
   def accounts
-    if File.exists?('../../accounts.yml')
+    if File.exist?('../../accounts.yml')
       YAML.load_file('../../accounts.yml')
     else
       []
@@ -10,6 +10,6 @@ module Storage
   end
 
   def save_data(path, datas)
-    File.open(path, 'w') { |f| f.write datas.to_yaml } #Storing
+    File.open(path, 'w') { |f| f.write datas.to_yaml }
   end
 end

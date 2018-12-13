@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module Cash_flow
-    def withdraw_money
+module CashFlow
+  def withdraw_money
     puts 'Choose the card for withdrawing:'
-    answer, a2, a3 = nil #answers for gets.chomp
+    answer, a2, a3 = nil
     if @current_account.card.any?
       @current_account.card.each_with_index do |c, i|
         puts "- #{c[:number]}, #{c[:type]}, press #{i + 1}"
@@ -12,14 +12,15 @@ module Cash_flow
       loop do
         answer = gets.chomp
         break if answer == 'exit'
-        if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i > 0
+
+        if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
           current_card = @current_account.card[answer&.to_i.to_i - 1]
           loop do
             puts 'Input the amount of money you want to withdraw'
             a2 = gets.chomp
-            if a2&.to_i.to_i > 0
+            if a2&.to_i.to_i.positive?
               money_left = current_card[:balance] - a2&.to_i.to_i - withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
-              if money_left > 0
+              if money_left.positive?
                 current_card[:balance] = money_left
                 @current_account.card[answer&.to_i.to_i - 1] = current_card
                 new_accounts = []
@@ -31,8 +32,8 @@ module Cash_flow
                   end
                 end
                 save_data(@file_path, new_accounts)
-                #File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
                 puts "Money #{a2&.to_i.to_i} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}$"
+
                 return
               else
                 puts "You don't have enough money on card for such operation"
@@ -64,12 +65,13 @@ module Cash_flow
       loop do
         answer = gets.chomp
         break if answer == 'exit'
-        if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i > 0
+        
+        if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
           current_card = @current_account.card[answer&.to_i.to_i - 1]
           loop do
             puts 'Input the amount of money you want to put on your card'
             a2 = gets.chomp
-            if a2&.to_i.to_i > 0
+            if a2&.to_i.to_i.positive?
               if put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i) >= a2&.to_i.to_i
                 puts 'Your tax is higher than input amount'
                 return
@@ -86,7 +88,6 @@ module Cash_flow
                   end
                 end
                 save_data(@file_path, new_accounts)
-                #File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
                 puts "Money #{a2&.to_i.to_i} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}"
                 return
               end
@@ -115,7 +116,7 @@ module Cash_flow
       puts "press `exit` to exit\n"
       answer = gets.chomp
       exit if answer == 'exit'
-      if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i > 0
+      if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
         sender_card = @current_account.card[answer&.to_i.to_i - 1]
       else
         puts 'Choose correct card'
@@ -144,11 +145,11 @@ module Cash_flow
     loop do
       puts 'Input the amount of money you want to withdraw'
       a3 = gets.chomp
-      if a3&.to_i.to_i > 0
+      if a3&.to_i.to_i.positive?
         sender_balance = sender_card[:balance] - a3&.to_i.to_i - sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)
         recipient_balance = recipient_card[:balance] + a3&.to_i.to_i - put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i)
 
-        if sender_balance < 0
+        if sender_balance.negative?
           puts "You don't have enough money on card for such operation"
         elsif put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i) >= a3&.to_i.to_i
           puts 'There is no enough money on sender card'
@@ -163,9 +164,7 @@ module Cash_flow
               recipient = ac
               new_recipient_cards = []
               recipient.card.each do |card|
-                if card[:number] == a2
-                  card[:balance] = recipient_balance
-                end
+                card[:balance] = recipient_balance if card[:number] == a2
                 new_recipient_cards.push(card)
               end
               recipient.card = new_recipient_cards
@@ -173,7 +172,6 @@ module Cash_flow
             end
           end
           save_data('../../accounts.yml', new_accounts)
-          #File.open('accounts.yml', 'w') { |f| f.write new_accounts.to_yaml } #Storing
           puts "Money #{a3&.to_i.to_i}$ was put on #{sender_card[:number]}. Balance: #{recipient_balance}. Tax: #{put_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
           puts "Money #{a3&.to_i.to_i}$ was put on #{a2}. Balance: #{sender_balance}. Tax: #{sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
           break

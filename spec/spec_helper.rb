@@ -6,6 +6,7 @@ SimpleCov.start do
 end
 
 require './lib/banking/msgs'
+require './lib/banking/console'
 require './lib/banking/storage'
 require './lib/banking/tax'
 require './lib/banking/card'

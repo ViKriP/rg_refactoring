@@ -15,7 +15,7 @@ module Card
     loop do
       CREATE_CARD_MSG.each { |msg| puts msg }
       ct = gets.chomp
-      if %w(usual capitalist virtual).include?(ct)
+      if %w[usual capitalist virtual].include?(ct)
         case ct
         when 'usual' then card = { type: 'usual', number: Array.new(16) { rand(10) }.join, balance: 50.00 }
         when 'capitalist' then card = { type: 'capitalist', number: Array.new(16) { rand(10) }.join, balance: 100.00 }
@@ -25,7 +25,7 @@ module Card
         @current_account.card = cards
         new_accounts = []
         accounts.each do |ac|
-          ac.login == @current_account.login ? new_accounts.push(@current_account) :
+          new_accounts.push(@current_account) if ac.login == @current_account.login
           new_accounts.push(ac)
         end
         save_data(@file_path, new_accounts)
@@ -54,11 +54,8 @@ module Card
             @current_account.card.delete_at(answer&.to_i.to_i - 1)
             new_accounts = []
             accounts.each do |ac|
-              if ac.login == @current_account.login
-                new_accounts.push(@current_account)
-              else
-                new_accounts.push(ac)
-              end
+              new_accounts.push(@current_account) if ac.login == @current_account.login
+              new_accounts.push(ac)
             end
             save_data(@file_path, new_accounts)
             break

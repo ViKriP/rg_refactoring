@@ -6,20 +6,13 @@ require 'pry'
 module Banking
   class Console
     attr_accessor :storage, :cashflow, :current_account, :tax, :card
-                  #:login, :name, :password, :accounts, :account, 
 
     def initialize
-      #@errors = []
-      #@file_path = 'accounts.yml'
       @current_account = Account.new
       @current_account.card = []
       @card = Card.new
-      #@account = Account.new
-      #@account.card = []
       @storage = Storage.new
-      #@card = Card.new(@current_account)
       @cashflow = CashFlow.new
-      #puts @storage.accounts
       @tax = Tax.new
     end
 
@@ -34,28 +27,20 @@ module Banking
     end
 
     def create
-      #puts "-TEST-"
       loop do
         name_input
         age_input
         login_input
         password_input
-        #puts "-- #{@current_account.errors.length} --"
-        #break unless @current_account.errors.length != 0
+
         break if @current_account.errors.empty?
-        #puts "-- OK --"
+
         @current_account.errors.each do |e|
           puts e
         end
         @current_account.errors = []
       end
       
-      #???????    @card = []
-      #@account = Account.new
-     # @current_account.name = @name
-     # @current_account.login = @login
-     # @current_account.password = @password      
-
       new_accounts = accounts << @current_account #self # TODO self to Account
       #@current_account = @current_account #self
       #@card.current_account = @current_account
@@ -126,50 +111,34 @@ module Banking
     end
 
     def create_card
-      #loop { break unless @card.create_card(gets.chomp) }
       loop do
         CREATE_CARD_MSG.each { |msg| puts msg }
         res = @card.create_card(gets.chomp)
-        #puts "#{res} -- "
         break unless res 
           puts res
       end
-=begin
-      loop do
-        CREATE_CARD_MSG.each { |msg| puts msg }
-        ct = gets.chomp
-        #puts ct
-        if %w[usual capitalist virtual].include?(ct)
-          case ct
-          when 'usual' then card = { type: 'usual', number: Array.new(16) { rand(10) }.join, balance: 50.00 }
-          when 'capitalist' then card = { type: 'capitalist', number: Array.new(16) { rand(10) }.join, balance: 100.00 }
-          when 'virtual' then card = { type: 'virtual', number: Array.new(16) { rand(10) }.join, balance: 150.00 }
-          end
-  
-          cards = @current_account.card << card  #<< card #TODO more cards
-          @current_account.card = cards
-          new_accounts = []
-
-          accounts.each do |ac| #!!!! .accounts
-            if ac.login == @current_account.login
-              new_accounts.push(@current_account)
-            else
-              new_accounts.push(ac)
-            end
-          end
-          Storage.new.save_data(new_accounts)
-          break
-        else
-          puts "Wrong card type. Try again!\n"
-        end
-      end
-=end      
     end
 
     def destroy_card
-      #@card = Card.new(@current_account)
-      #@card.destroy_card
+      loop do
+        puts @card.destroy_card_list
+        break unless @card.card_any_exists
 
+        answer = gets.chomp
+        break if answer == 'exit'
+
+        destroying = @card.card_for_destroying(answer) 
+        puts destroying[:content]
+
+        unless destroying[:error]
+          @card.destroy_card(answer, gets.chomp)
+
+          break if @card.card_deleted
+          return unless @card.card_deleted
+        end
+      end
+
+=begin
       loop do
         if @current_account.card.any?
           puts 'If you want to delete:'
@@ -208,7 +177,7 @@ module Banking
           break
         end
       end
-      
+=end      
     end
 
     def withdraw_money
@@ -416,79 +385,29 @@ module Banking
 
     def destroy_account
       puts 'Are you sure you want to destroy account?[y/n]'
-      #puts "=== #{accounts}"
       @current_account.destroy_account(gets.chomp)
-      
-=begin    
-      if gets.chomp == 'y'
-        new_accounts = []
-        accounts.each do |ac|
-          if ac.login == @current_account.login
-          else
-            new_accounts.push(ac)
-          end
-        end
-        @storage.save_data(new_accounts)
-      end
-=end      
     end
 
     private
   
     def name_input
       puts 'Enter your name'
-      #@account.name = gets.chomp
-      #name = gets.chomp
-      #@account.name_input(name)
-
       @current_account.name_input(gets.chomp)
-
-      #@name = gets.chomp
-      #if @name.empty? || @name[0].upcase != @name[0]
-      #  @errors.push('Your name must not be empty and starts with first upcase letter')
-      #end
     end
 
     def login_input
       puts 'Enter your login'
-      #login = gets.chomp
-      #@account.login_input(login)
-
       @current_account.login_input(gets.chomp)
-
-      #@login = gets.chomp
-      #@errors.push('Login must present') if @login.empty?
-      #@errors.push('Login must be longer then 4 symbols') if @login.length < 4
-      #@errors.push('Login must be shorter then 20 symbols') if @login.length > 20
-      #@errors.push('Such account is already exists') if accounts.map(&:login).include?(@login)
     end
 
     def password_input
       puts 'Enter your password'
-      #psw = gets.chomp
-      #@account.password_input(psw)
-
       @current_account.password_input(gets.chomp)
-
-      #@password = gets.chomp
-      #@errors.push('Password must present') if @password.empty?
-      #@errors.push('Password must be longer then 6 symbols') if @password.length < 6
-      #@errors.push('Password must be shorter then 30 symbols') if @password.length > 30
     end
 
     def age_input
       puts 'Enter your age'
-      #age = gets.chomp
-      #@account.age_input(age)
-
       @current_account.age_input(gets.chomp)
-
-      #@age = gets.chomp
-      #if @age.to_i.is_a?(Integer) && @age.to_i >= 23 && @age.to_i <= 90
-      #  @age = @age.to_i
-      #else
-      # @errors.push('Your Age must be greeter then 23 and lower then 90')
-      #end
     end
 
     def accounts

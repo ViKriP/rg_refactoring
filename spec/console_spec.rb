@@ -532,6 +532,10 @@ RSpec.describe Console do
   end
 
   describe '#destroy_card' do
+    #before do
+    #  stub_const('Banking::DB_PATH', OVERRIDABLE_FILENAME)
+    #end
+
     context 'without cards' do
       it 'shows message about not active cards' do
         current_subject.instance_variable_set(:@current_account, instance_double('Account', card: []))
@@ -548,6 +552,7 @@ RSpec.describe Console do
         it do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.card.instance_variable_set(:@current_account, current_subject.current_account)
           allow(current_subject).to receive_message_chain(:gets, :chomp) { 'exit' }
           expect { current_subject.destroy_card }.to output(/#{COMMON_PHRASES[:if_you_want_to_delete]}/).to_stdout
           fake_cards.each_with_index do |card, i|
@@ -562,6 +567,7 @@ RSpec.describe Console do
         it do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.card.instance_variable_set(:@current_account, current_subject.current_account)
           expect(current_subject).to receive_message_chain(:gets, :chomp) { 'exit' }
           current_subject.destroy_card
         end
@@ -571,6 +577,7 @@ RSpec.describe Console do
         before do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.card.instance_variable_set(:@current_account, current_subject.current_account)          
         end
 
         it do
@@ -591,10 +598,10 @@ RSpec.describe Console do
 
         before do
           stub_const('Banking::DB_PATH', OVERRIDABLE_FILENAME)
-          #current_subject.instance_variable_set(:@file_path, OVERRIDABLE_FILENAME)
           current_subject.current_account.instance_variable_set(:@card, fake_cards)
           allow(current_subject).to receive(:accounts) { [current_subject.current_account] }
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.card.instance_variable_set(:@current_account, current_subject.current_account)
         end
 
         after do
@@ -609,7 +616,6 @@ RSpec.describe Console do
 
           expect(File.exist?(OVERRIDABLE_FILENAME)).to be true
           file_accounts = YAML.load_file(OVERRIDABLE_FILENAME)
-          #puts "--- #{current_subject.card} -- #{card_one}"
           expect(current_subject.current_account.card).not_to include(card_one)
           #expect(file_accounts.first.card).not_to include(card_one)
         end

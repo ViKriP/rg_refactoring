@@ -5,14 +5,15 @@ require 'pry'
 
 module Banking
   class Console
-    attr_accessor :storage, :cashflow, :current_account, :tax
-                  #:login, :name, :password, :accounts, :account, :card, 
+    attr_accessor :storage, :cashflow, :current_account, :tax, :card
+                  #:login, :name, :password, :accounts, :account, 
 
     def initialize
-      @errors = []
+      #@errors = []
       #@file_path = 'accounts.yml'
       @current_account = Account.new
       @current_account.card = []
+      @card = Card.new
       #@account = Account.new
       #@account.card = []
       @storage = Storage.new
@@ -58,6 +59,7 @@ module Banking
       new_accounts = accounts << @current_account #self # TODO self to Account
       #@current_account = @current_account #self
       #@card.current_account = @current_account
+      @card.current_account = @current_account
       @cashflow.current_account = @current_account
       @storage.save_data(new_accounts)
       main_menu
@@ -94,6 +96,7 @@ module Banking
         end
        
       end
+      @card.current_account = @current_account
       main_menu
     end
 
@@ -130,8 +133,9 @@ module Banking
 
     def show_cards
       #@card = Card.new(@current_account)
-      #@card.show_cards
-
+      #puts "#{@card.current_account} -- #{@current_account}"
+      @card.show_cards1.each { |card| puts card }
+=begin
       if @current_account.card.any?
         @current_account.card.each do |c|
           puts "- #{c[:number]}, #{c[:type]}"
@@ -139,6 +143,7 @@ module Banking
       else
         puts "There is no active cards!\n"
       end
+=end      
     end
 
     def create_card

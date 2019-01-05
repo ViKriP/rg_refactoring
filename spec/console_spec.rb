@@ -464,6 +464,7 @@ RSpec.describe Console do
 
     it 'display cards if there are any' do
       current_subject.instance_variable_set(:@current_account, instance_double('Account', card: cards))
+      current_subject.card.instance_variable_set(:@current_account, instance_double('Account', card: cards))
       cards.each { |card| expect(current_subject).to receive(:puts).with("- #{card[:number]}, #{card[:type]}") }
       current_subject.show_cards
     end

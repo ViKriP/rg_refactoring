@@ -482,7 +482,7 @@ RSpec.describe Console do
         CREATE_CARD_PHRASES.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
         current_subject.current_account.instance_variable_set(:@card, [])
         current_subject.instance_variable_set(:@current_account, Account.new)
-        allow(current_subject).to receive(:accounts).and_return([])
+        allow(current_subject.card.storage).to receive(:load_data).and_return([])
         allow(File).to receive(:open)
         expect(current_subject).to receive_message_chain(:gets, :chomp) { 'usual' }
 
@@ -493,7 +493,7 @@ RSpec.describe Console do
     context 'when correct card choose' do
       before do
         allow(current_subject.current_account).to receive(:card).and_return([])
-        allow(current_subject).to receive(:accounts) { [Account.new] }
+        allow(current_subject.card.storage).to receive(:load_data) { [Account.new] }
         stub_const('Banking::DB_PATH', OVERRIDABLE_FILENAME)
         #current_subject.instance_variable_set(:@file_path, OVERRIDABLE_FILENAME)
         current_subject.instance_variable_set(:@current_account, Account.new)
@@ -523,7 +523,7 @@ RSpec.describe Console do
         current_subject.current_account.instance_variable_set(:@card, [])
         current_subject.instance_variable_set(:@current_account, current_subject.current_account)
         allow(File).to receive(:open)
-        allow(current_subject).to receive(:accounts).and_return([])
+        allow(current_subject.card.storage).to receive(:load_data).and_return([])
         allow(current_subject).to receive_message_chain(:gets, :chomp).and_return('test', 'usual')
 
         expect { current_subject.create_card }.to output(/#{ERROR_PHRASES[:wrong_card_type]}/).to_stdout

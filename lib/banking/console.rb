@@ -76,16 +76,6 @@ module Banking
         login = gets.chomp
         puts 'Enter your password'
         password = gets.chomp
-=begin
-        if @storage.accounts.map { |a| { login: a.login, password: a.password } }.include?({ login: login, password: password })
-          a = @storage.accounts.select { |a| login == a.login }.first
-          @current_account = a
-          break
-        else
-          puts 'There is no account with given credentials'
-          next
-        end
-=end         
 
         if accounts.map { |a| { login: a.login, password: a.password } }.include?({ login: login, password: password })
           @current_account = accounts.select { |usr| login == usr.login }.first
@@ -132,24 +122,19 @@ module Banking
     end
 
     def show_cards
-      #@card = Card.new(@current_account)
-      #puts "#{@card.current_account} -- #{@current_account}"
-      @card.show_cards1.each { |card| puts card }
-=begin
-      if @current_account.card.any?
-        @current_account.card.each do |c|
-          puts "- #{c[:number]}, #{c[:type]}"
-        end
-      else
-        puts "There is no active cards!\n"
-      end
-=end      
+      @card.show_cards.each { |card| puts card }
     end
 
     def create_card
-      #@card = Card.new(@current_account)
-      #@card.create_card
-      #puts "Ok ---- "
+      #loop { break unless @card.create_card(gets.chomp) }
+      loop do
+        CREATE_CARD_MSG.each { |msg| puts msg }
+        res = @card.create_card(gets.chomp)
+        #puts "#{res} -- "
+        break unless res 
+          puts res
+      end
+=begin
       loop do
         CREATE_CARD_MSG.each { |msg| puts msg }
         ct = gets.chomp
@@ -161,29 +146,24 @@ module Banking
           when 'virtual' then card = { type: 'virtual', number: Array.new(16) { rand(10) }.join, balance: 150.00 }
           end
   
-    #puts "++++++#{current_account.login} || #{current_account.card} || #{card}"
           cards = @current_account.card << card  #<< card #TODO more cards
           @current_account.card = cards
           new_accounts = []
-      #puts "++++++#{@current_account.login} || #{@current_account.card} || #{card}"
-      #puts "----- #{Storage.new.accounts}"
-        accounts.each do |ac| #!!!! .accounts
-          if ac.login == @current_account.login
-            new_accounts.push(@current_account)
-          else
-            new_accounts.push(ac)
+
+          accounts.each do |ac| #!!!! .accounts
+            if ac.login == @current_account.login
+              new_accounts.push(@current_account)
+            else
+              new_accounts.push(ac)
+            end
           end
-          #puts "LOGINs ** #{ac.login} == #{@current_account.login}"
-          #new_accounts.push(@current_account) if ac.login == @current_account.login
-          #new_accounts.push(ac)
-        end
-          #cards #return card
           Storage.new.save_data(new_accounts)
           break
         else
           puts "Wrong card type. Try again!\n"
         end
       end
+=end      
     end
 
     def destroy_card

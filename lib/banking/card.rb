@@ -9,7 +9,7 @@ module Banking
       @storage = Storage.new
     end
 
-    def show_cards1
+    def show_cards
       cards = []
       if @current_account.card.any?
         #puts @current_account.card
@@ -23,42 +23,37 @@ module Banking
       return cards
     end
 
-    def create_card
-      #current_account.card = []
-      #puts "---| #{@current_account}"
-      loop do
-        CREATE_CARD_MSG.each { |msg| puts msg }
-        ct = gets.chomp
-        if %w[usual capitalist virtual].include?(ct)
-          case ct
+    def create_card(card_type)
+      #loop do
+        #CREATE_CARD_MSG.each { |msg| puts msg }
+        #ct = gets.chomp
+        #puts ct
+        if %w[usual capitalist virtual].include?(card_type)
+          case card_type
           when 'usual' then card = { type: 'usual', number: Array.new(16) { rand(10) }.join, balance: 50.00 }
           when 'capitalist' then card = { type: 'capitalist', number: Array.new(16) { rand(10) }.join, balance: 100.00 }
           when 'virtual' then card = { type: 'virtual', number: Array.new(16) { rand(10) }.join, balance: 150.00 }
           end
   
-    #puts "++++++#{current_account.login} || #{current_account.card} || #{card}"
           cards = @current_account.card << card  #<< card #TODO more cards
           @current_account.card = cards
           new_accounts = []
-      #puts "++++++#{@current_account.login} || #{@current_account.card} || #{card}"
-      #puts "----- #{Storage.new.accounts}"
-        Storage.new.load_data.each do |ac| #!!!! .accounts
-          if ac.login == @current_account.login
-            new_accounts.push(@current_account)
-          else
-            new_accounts.push(ac)
+
+          @storage.load_data.each do |ac| #!!!! .accounts
+            if ac.login == @current_account.login
+              new_accounts.push(@current_account)
+            else
+              new_accounts.push(ac)
+            end
           end
-          #puts "LOGINs ** #{ac.login} == #{@current_account.login}"
-          #new_accounts.push(@current_account) if ac.login == @current_account.login
-          #new_accounts.push(ac)
-        end
-          #cards #return card
           Storage.new.save_data(new_accounts)
-          break
+          #break
+          #puts "OK"
+          false
         else
-          puts "Wrong card type. Try again!\n"
+          return "Wrong card type. Try again!\n"
         end
-      end
+      #end
     end
 
     def destroy_card

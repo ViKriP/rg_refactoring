@@ -5,8 +5,8 @@ require 'pry'
 
 module Banking
   class Console
-    attr_accessor :storage, :cashflow, :current_account, :card, :tax
-                  #:login, :name, :password, :accounts, :account, 
+    attr_accessor :storage, :cashflow, :current_account, :tax
+                  #:login, :name, :password, :accounts, :account, :card, 
 
     def initialize
       @errors = []

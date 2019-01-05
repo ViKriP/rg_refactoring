@@ -2,4 +2,6 @@
 
 require_relative 'lib/autoloader'
 
-Banking::Account.new.console
+Banking::Console.new.console
+
+#puts YAML.load_file(accounts.yml)

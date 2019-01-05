@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
-module CashFlow
+module Banking
+  class CashFlow
+    attr_accessor :tax, :storage, :current_account
+
+    def initialize
+      @tax = Tax.new
+      @storage = Storage.new
+      @current_account = Account.new
+    end
+
   def withdraw_money
     puts 'Choose the card for withdrawing:'
     answer, a2, a3 = nil
@@ -19,20 +28,20 @@ module CashFlow
             puts 'Input the amount of money you want to withdraw'
             a2 = gets.chomp
             if a2&.to_i.to_i.positive?
-              money_left = current_card[:balance] - a2&.to_i.to_i - withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
+              money_left = current_card[:balance] - a2&.to_i.to_i - @tax.withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
               if money_left.positive?
                 current_card[:balance] = money_left
                 @current_account.card[answer&.to_i.to_i - 1] = current_card
                 new_accounts = []
-                accounts.each do |ac|
+                @storage.accounts.each do |ac|
                   if ac.login == @current_account.login
                     new_accounts.push(@current_account)
                   else
                     new_accounts.push(ac)
                   end
                 end
-                save_data(@file_path, new_accounts)
-                puts "Money #{a2&.to_i.to_i} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}$"
+                @storage.save_data(new_accounts)
+                puts "Money #{a2&.to_i.to_i} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{@tax.withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}$"
 
                 return
               else
@@ -72,22 +81,22 @@ module CashFlow
             puts 'Input the amount of money you want to put on your card'
             a2 = gets.chomp
             if a2&.to_i.to_i.positive?
-              if put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i) >= a2&.to_i.to_i
+              if @tax.put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i) >= a2&.to_i.to_i
                 puts 'Your tax is higher than input amount'
                 return
               else
-                new_money_amount = current_card[:balance] + a2&.to_i.to_i - put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
+                new_money_amount = current_card[:balance] + a2&.to_i.to_i - @tax.put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
                 current_card[:balance] = new_money_amount
                 @current_account.card[answer&.to_i.to_i - 1] = current_card
                 new_accounts = []
-                accounts.each do |ac|
+                @storage.accounts.each do |ac|
                   if ac.login == @current_account.login
                     new_accounts.push(@current_account)
                   else
                     new_accounts.push(ac)
                   end
                 end
-                save_data(@file_path, new_accounts)
+                @storage.save_data(new_accounts)
                 puts "Money #{a2&.to_i.to_i} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}"
                 return
               end
@@ -130,7 +139,7 @@ module CashFlow
     puts 'Enter the recipient card:'
     a2 = gets.chomp
     if a2.length > 15 && a2.length < 17
-      all_cards = accounts.map(&:card).flatten
+      all_cards = @storage.accounts.map(&:card).flatten
       if all_cards.select { |card| card[:number] == a2 }.any?
         recipient_card = all_cards.select { |card| card[:number] == a2 }.first
       else
@@ -146,8 +155,8 @@ module CashFlow
       puts 'Input the amount of money you want to withdraw'
       a3 = gets.chomp
       if a3&.to_i.to_i.positive?
-        sender_balance = sender_card[:balance] - a3&.to_i.to_i - sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)
-        recipient_balance = recipient_card[:balance] + a3&.to_i.to_i - put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i)
+        sender_balance = sender_card[:balance] - a3&.to_i.to_i - @tax.sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)
+        recipient_balance = recipient_card[:balance] + a3&.to_i.to_i - @tax.put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i)
 
         if sender_balance.negative?
           puts "You don't have enough money on card for such operation"
@@ -157,7 +166,7 @@ module CashFlow
           sender_card[:balance] = sender_balance
           @current_account.card[answer&.to_i.to_i - 1] = sender_card
           new_accounts = []
-          accounts.each do |ac|
+          @storage.accounts.each do |ac|
             if ac.login == @current_account.login
               new_accounts.push(@current_account)
             elsif ac.card.map { |card| card[:number] }.include? a2
@@ -171,9 +180,9 @@ module CashFlow
               new_accounts.push(recipient)
             end
           end
-          save_data('../../accounts.yml', new_accounts)
-          puts "Money #{a3&.to_i.to_i}$ was put on #{sender_card[:number]}. Balance: #{recipient_balance}. Tax: #{put_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
-          puts "Money #{a3&.to_i.to_i}$ was put on #{a2}. Balance: #{sender_balance}. Tax: #{sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
+          @storage.save_data(new_accounts)
+          puts "Money #{a3&.to_i.to_i}$ was put on #{sender_card[:number]}. Balance: #{recipient_balance}. Tax: #{@tax.put_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
+          puts "Money #{a3&.to_i.to_i}$ was put on #{a2}. Balance: #{sender_balance}. Tax: #{@tax.sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
           break
         end
       else
@@ -181,4 +190,5 @@ module CashFlow
       end
     end
   end
+end
 end

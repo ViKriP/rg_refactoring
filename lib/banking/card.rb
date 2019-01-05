@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
-module Card
+module Banking
+  class Card
+    attr_accessor :storage, :current_account
+
+    def initialize(current_account)
+      @current_account = current_account
+      @storage = Storage.new
+    end
+
   def show_cards
     if @current_account.card.any?
       @current_account.card.each do |c|
@@ -12,6 +20,8 @@ module Card
   end
 
   def create_card
+    #current_account.card = []
+    #puts "---| #{@current_account}"
     loop do
       CREATE_CARD_MSG.each { |msg| puts msg }
       ct = gets.chomp
@@ -21,14 +31,25 @@ module Card
         when 'capitalist' then card = { type: 'capitalist', number: Array.new(16) { rand(10) }.join, balance: 100.00 }
         when 'virtual' then card = { type: 'virtual', number: Array.new(16) { rand(10) }.join, balance: 150.00 }
         end
-        cards = @current_account.card << card
+
+  #puts "++++++#{current_account.login} || #{current_account.card} || #{card}"
+        cards = @current_account.card << card  #<< card #TODO more cards
         @current_account.card = cards
         new_accounts = []
-        accounts.each do |ac|
-          new_accounts.push(@current_account) if ac.login == @current_account.login
+    #puts "++++++#{@current_account.login} || #{@current_account.card} || #{card}"
+    #puts "----- #{Storage.new.accounts}"
+      Storage.new.load_data.each do |ac| #!!!! .accounts
+        if ac.login == @current_account.login
+          new_accounts.push(@current_account)
+        else
           new_accounts.push(ac)
         end
-        save_data(@file_path, new_accounts)
+        #puts "LOGINs ** #{ac.login} == #{@current_account.login}"
+        #new_accounts.push(@current_account) if ac.login == @current_account.login
+        #new_accounts.push(ac)
+      end
+        #cards #return card
+        Storage.new.save_data(new_accounts)
         break
       else
         puts "Wrong card type. Try again!\n"
@@ -53,11 +74,16 @@ module Card
           if gets.chomp == 'y'
             @current_account.card.delete_at(answer&.to_i.to_i - 1)
             new_accounts = []
-            accounts.each do |ac|
-              new_accounts.push(@current_account) if ac.login == @current_account.login
-              new_accounts.push(ac)
+            @storage.load_data.each do |ac| #!!!accoumts
+              if ac.login == @current_account.login
+                new_accounts.push(@current_account)
+              else
+                new_accounts.push(ac)
+              end
+              #new_accounts.push(@current_account) if ac.login == @current_account.login
+              #new_accounts.push(ac)
             end
-            save_data(@file_path, new_accounts)
+            @storage.save_data(new_accounts)
             break
           else
             return
@@ -71,4 +97,6 @@ module Card
       end
     end
   end
+  
+end
 end

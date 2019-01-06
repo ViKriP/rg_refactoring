@@ -2,7 +2,7 @@
 
 module Banking
   class CashFlow
-    attr_accessor :tax, :storage, :current_account
+    attr_accessor :tax, :storage, :current_account, :card_any_exists
 
     def initialize
       @tax = Tax.new
@@ -10,59 +10,81 @@ module Banking
       @current_account = Account.new
     end
 
-  def withdraw_money
-    puts 'Choose the card for withdrawing:'
-    answer, a2, a3 = nil
-    if @current_account.card.any?
-      @current_account.card.each_with_index do |c, i|
-        puts "- #{c[:number]}, #{c[:type]}, press #{i + 1}"
+    def cards_list
+      @card_any_exists = false
+      cards_list_print = "Choose the card for withdrawing:\n"
+      #answer, a2, a3 = nil
+      if @current_account.card.any?
+        @current_account.card.each_with_index do |c, i|
+          cards_list_print += "- #{c[:number]}, #{c[:type]}, press #{i + 1}\n"
+        end
+        cards_list_print += "press `exit` to exit\n"
+        @card_any_exists = true
+        return cards_list_print
+      else
+        return "There is no active cards!\n"
       end
-      puts "press `exit` to exit\n"
-      loop do
-        answer = gets.chomp
-        break if answer == 'exit'
+    end
+
+    def card_for_withdraw(answer)
+      #loop do
+      #  answer = gets.chomp
+      #  break if answer == 'exit'
 
         if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
-          current_card = @current_account.card[answer&.to_i.to_i - 1]
-          loop do
-            puts 'Input the amount of money you want to withdraw'
-            a2 = gets.chomp
-            if a2&.to_i.to_i.positive?
-              money_left = current_card[:balance] - a2&.to_i.to_i - @tax.withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
-              if money_left.positive?
-                current_card[:balance] = money_left
-                @current_account.card[answer&.to_i.to_i - 1] = current_card
-                new_accounts = []
-                @storage.accounts.each do |ac|
-                  if ac.login == @current_account.login
-                    new_accounts.push(@current_account)
-                  else
-                    new_accounts.push(ac)
-                  end
-                end
-                @storage.save_data(new_accounts)
-                puts "Money #{a2&.to_i.to_i} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{@tax.withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}$"
+          selected_card = { current_card: @current_account.card[answer&.to_i.to_i - 1], error: false }
+        else
+          selected_card = { message: "You entered wrong number!\n", error: true }
+          #return
+        end
+      #end
+    end
 
-                return
-              else
-                puts "You don't have enough money on card for such operation"
-                return
-              end
+    def withdrawal_amount(current_card, a2) #TODO money = a2
+      #puts 'Input the amount of money you want to withdraw'
+      #a2 = gets.chomp
+      if a2&.to_i.to_i.positive?
+        amount_info = { money_left: current_card[:balance] - a2&.to_i.to_i - @tax.withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i),
+                        error: false }
+      else
+        amount_info = { message: 'You must input correct amount of $', error: true }
+        #return
+      end
+    end
+
+    def withdraw_money(current_card, money_left, a2, answer)
+      #puts 'Input the amount of money you want to withdraw'
+      #a2 = gets.chomp
+      #if a2&.to_i.to_i.positive?
+      #  money_left = current_card[:balance] - a2&.to_i.to_i - @tax.withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
+        if money_left.positive?
+          current_card[:balance] = money_left
+          @current_account.card[answer&.to_i.to_i - 1] = current_card
+          new_accounts = []
+          @storage.load_data.each do |ac|
+            if ac.login == @current_account.login
+              new_accounts.push(@current_account)
             else
-              puts 'You must input correct amount of $'
-              return
+              new_accounts.push(ac)
             end
           end
+          @storage.save_data(new_accounts)
+          withdrawing_amount_info = { message: "Money #{a2&.to_i.to_i} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{@tax.withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}$",
+                                      return: true }
+  
+          #return
         else
-          puts "You entered wrong number!\n"
-          return
+          withdrawing_amount_info = { message: "You don't have enough money on card for such operation",
+                                      return: true }
+          #return
         end
-      end
-    else
-      puts "There is no active cards!\n"
+      #else
+      #  puts 'You must input correct amount of $'
+      #  #return
+      #end
     end
-  end
 
+=begin
   def put_money
     puts 'Choose the card for putting:'
 
@@ -190,5 +212,8 @@ module Banking
       end
     end
   end
+
+=end
+
 end
 end

@@ -767,6 +767,7 @@ RSpec.describe Console do
     context 'without cards' do
       it 'shows message about not active cards' do
         current_subject.instance_variable_set(:@current_account, instance_double('Account', card: []))
+        current_subject.cashflow.instance_variable_set(:@current_account, instance_double('Account', card: []))
         expect { current_subject.withdraw_money }.to output(/#{ERROR_PHRASES[:no_active_cards]}/).to_stdout
       end
     end
@@ -780,6 +781,7 @@ RSpec.describe Console do
         it do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
           allow(current_subject).to receive_message_chain(:gets, :chomp) { 'exit' }
           expect { current_subject.withdraw_money }.to output(/#{COMMON_PHRASES[:choose_card_withdrawing]}/).to_stdout
           fake_cards.each_with_index do |card, i|
@@ -829,6 +831,7 @@ RSpec.describe Console do
         before do
           current_subject.current_account.instance_variable_set(:@card, fake_cards)
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
           allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(*commands)
         end
 

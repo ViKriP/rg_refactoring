@@ -52,14 +52,14 @@ module Banking
     def destroy_card_list
       @card_any_exists = false
       if @current_account.card.any?
-        card_list = "If you want to delete:\n"
+        cards_list_print = "If you want to delete:\n"
 
         @current_account.card.each_with_index do |c, i|
-          card_list += "- #{c[:number]}, #{c[:type]}, press #{i + 1}" + "\n"
+          cards_list_print += "- #{c[:number]}, #{c[:type]}, press #{i + 1}" + "\n"
         end
-        card_list += "press `exit` to exit\n"
+        cards_list_print += "press `exit` to exit\n"
         @card_any_exists = true
-        return card_list
+        return cards_list_print
       else
         return "There is no active cards!\n"
         #break
@@ -79,7 +79,7 @@ module Banking
     def destroy_card(answer, delete_card)
       @card_deleted = false
       if delete_card == 'y'
-          @current_account.card.delete_at(answer&.to_i.to_i - 1)
+        @current_account.card.delete_at(answer&.to_i.to_i - 1)
           new_accounts = []
           @storage.load_data.each do |ac| #!!!accoumts
             if ac.login == @current_account.login
@@ -93,53 +93,10 @@ module Banking
           @storage.save_data(new_accounts)
           @card_deleted = true
           #break  !!!!!!!!!!!!!
-        else
-          return
-        end
-    end
-
-
-=begin
-    def destroy_card_
-      loop do
-        if @current_account.card.any?
-          puts 'If you want to delete:'
-  
-          @current_account.card.each_with_index do |c, i|
-            puts "- #{c[:number]}, #{c[:type]}, press #{i + 1}"
-          end
-          puts "press `exit` to exit\n"
-          answer = gets.chomp
-          break if answer == 'exit'
-  
-          if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
-            puts "Are you sure you want to delete #{@current_account.card[answer&.to_i.to_i - 1][:number]}?[y/n]"
-            if gets.chomp == 'y'
-              @current_account.card.delete_at(answer&.to_i.to_i - 1)
-              new_accounts = []
-              @storage.load_data.each do |ac| #!!!accoumts
-                if ac.login == @current_account.login
-                  new_accounts.push(@current_account)
-                else
-                  new_accounts.push(ac)
-                end
-                #new_accounts.push(@current_account) if ac.login == @current_account.login
-                #new_accounts.push(ac)
-              end
-              @storage.save_data(new_accounts)
-              break
-            else
-              return
-            end
-          else
-            puts "You entered wrong number!\n"
-          end
-        else
-          puts "There is no active cards!\n"
-          break
-        end
+      #else
+      #  return
       end
     end
-=end
+
   end
 end

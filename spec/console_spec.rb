@@ -647,6 +647,7 @@ RSpec.describe Console do
         it do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
           allow(current_subject).to receive_message_chain(:gets, :chomp) { 'exit' }
           expect { current_subject.put_money }.to output(/#{COMMON_PHRASES[:choose_card]}/).to_stdout
           fake_cards.each_with_index do |card, i|
@@ -696,6 +697,7 @@ RSpec.describe Console do
         before do
           current_subject.current_account.instance_variable_set(:@card, fake_cards)
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
           allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(*commands)
         end
 
@@ -742,8 +744,10 @@ RSpec.describe Console do
             it do
               custom_cards.each do |custom_card|
                 allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(*commands)
-                allow(current_subject).to receive(:accounts) { [current_subject.current_account] }
+                #allow(current_subject).to receive(:accounts) { [current_subject.current_account] }
+                allow(current_subject.cashflow.storage).to receive(:load_data) { [current_subject.current_account] }
                 current_subject.current_account.instance_variable_set(:@card, [custom_card, card_one, card_two])
+                current_subject.cashflow.current_account.instance_variable_set(:@card, [custom_card, card_one, card_two])
                 stub_const('Banking::DB_PATH', OVERRIDABLE_FILENAME)
                 #current_subject.instance_variable_set(:@file_path, OVERRIDABLE_FILENAME)
                 new_balance = default_balance + correct_money_amount_greater_than_tax - custom_card[:tax]

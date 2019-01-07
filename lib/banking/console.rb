@@ -141,32 +141,33 @@ module Banking
     end
 
     def withdraw_money
+      puts "Choose the card for withdrawing:\n"
       puts @cashflow.cards_list
+      
       loop do
         answer = gets.chomp
         break if answer == 'exit'
 
-        withdrawing = @cashflow.card_for_withdraw(answer)
+        card_selection = @cashflow.card_selection(answer)
 
-        if withdrawing[:error]
-          puts withdrawing[:message]
+        if card_selection[:error]
+          puts card_selection[:message]
           return 
         end
-        current_card = withdrawing[:current_card]
+        current_card = card_selection[:current_card]
 
         loop do
           puts 'Input the amount of money you want to withdraw'
           a2 = gets.chomp
 
-          amount = @cashflow.withdrawal_amount(current_card, a2)
+          amount = @cashflow.correct_amount(a2)
 
           if amount[:error]
             puts amount[:message]
             return
           end
-          money_left = amount[:money_left]
 
-          withdrawing_finality = @cashflow.withdraw_money(current_card, money_left, a2, answer)
+          withdrawing_finality = @cashflow.withdraw_money(current_card, a2, answer)
 
           if withdrawing_finality[:return]
             puts withdrawing_finality[:message]
@@ -177,6 +178,40 @@ module Banking
     end
 
     def put_money
+      puts 'Choose the card for putting:'
+      puts @cashflow.cards_list
+
+      loop do
+        answer = gets.chomp
+        break if answer == 'exit'
+
+        card_selection = @cashflow.card_selection(answer)
+
+        if card_selection[:error]
+          puts card_selection[:message]
+          return 
+        end
+        current_card = card_selection[:current_card]
+
+        loop do
+          puts 'Input the amount of money you want to put on your card'
+          a2 = gets.chomp
+
+          amount = @cashflow.correct_amount(a2)
+
+          if amount[:error]
+            puts amount[:message]
+            return
+          end
+
+          puts @cashflow.put_money(current_card, a2, answer)
+          return
+        end
+      end
+    end
+
+=begin
+    def put_money_
       #@cashflow.put_money
 
       puts 'Choose the card for putting:'
@@ -229,7 +264,7 @@ module Banking
         puts "There is no active cards!\n"
       end
     end
-
+=end
     def send_money
       #@cashflow.send_money
 

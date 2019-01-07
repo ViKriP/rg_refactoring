@@ -5,7 +5,7 @@ require 'pry'
 
 module Banking
   class Console
-    attr_accessor :storage, :cashflow, :current_account, :tax, :card
+    attr_accessor :storage, :cashflow, :current_account, :card#, :tax
 
     def initialize
       @current_account = Account.new
@@ -143,7 +143,7 @@ module Banking
     def withdraw_money
       puts "Choose the card for withdrawing:\n"
       puts @cashflow.cards_list
-      
+
       loop do
         answer = gets.chomp
         break if answer == 'exit'
@@ -210,139 +210,135 @@ module Banking
       end
     end
 
-=begin
-    def put_money_
-      #@cashflow.put_money
+    def send_money
+      puts 'Choose the card for sending:'
 
-      puts 'Choose the card for putting:'
+      puts @cashflow.cards_list
+      return unless @cashflow.card_any_exists
+      #puts @cashflow.cards_list
+
+      answer = gets.chomp
+      exit if answer == 'exit'
+
+      card_selection = @cashflow.card_selection(answer)
+
+      if card_selection[:error]
+        puts card_selection[:message]
+        return 
+      end
+      sender_card = card_selection[:current_card]
+
+      puts 'Enter the recipient card:'
+      a2 = gets.chomp
+
+      recipient_card = @cashflow.recipient_card_get(a2)
+      if recipient_card[:error]
+        puts recipient_card[:message]
+        return 
+      end
+
+      recipient_card = recipient_card[:recipient_card]
+
+      loop do
+        puts 'Input the amount of money you want to withdraw'
+        a3 = gets.chomp
+
+        card_balance = @cashflow.card_balance(a3, sender_card, recipient_card)
+        if card_balance[:error]
+          puts card_balance[:message]
+          return #TODO ???
+        end
+        sender_balance = card_balance[:sender_balance]
+        recipient_balance = card_balance[:recipient_balance]
+
+        dd = @cashflow.send_money(a3, a2, answer, sender_card, recipient_card, sender_balance, recipient_balance)
+        puts dd[:message]
+        break unless dd[:error]
+      end
+
+    end
+
+=begin
+    def send_money_
+      puts 'Choose the card for sending:'
 
       if @current_account.card.any?
         @current_account.card.each_with_index do |c, i|
           puts "- #{c[:number]}, #{c[:type]}, press #{i + 1}"
         end
         puts "press `exit` to exit\n"
-        loop do
-          answer = gets.chomp
-          break if answer == 'exit'
-          
-          if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
-            current_card = @current_account.card[answer&.to_i.to_i - 1]
-            loop do
-              puts 'Input the amount of money you want to put on your card'
-              a2 = gets.chomp
-              if a2&.to_i.to_i.positive?
-                if @tax.put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i) >= a2&.to_i.to_i
-                  puts 'Your tax is higher than input amount'
-                  return
-                else
-                  new_money_amount = current_card[:balance] + a2&.to_i.to_i - @tax.put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)
-                  current_card[:balance] = new_money_amount
-                  @current_account.card[answer&.to_i.to_i - 1] = current_card
-                  new_accounts = []
-                  accounts.each do |ac|
-                    if ac.login == @current_account.login
-                      new_accounts.push(@current_account)
-                    else
-                      new_accounts.push(ac)
-                    end
-                  end
-                  @storage.save_data(new_accounts)
-                  puts "Money #{a2&.to_i.to_i} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{@tax.put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}"
-                  return
-                end
-              else
-                puts 'You must input correct amount of money'
-                return
-              end
-            end
-          else
-            puts "You entered wrong number!\n"
-            return
-          end
+  
+        answer = gets.chomp
+        exit if answer == 'exit'
+  
+        if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
+          sender_card = @current_account.card[answer&.to_i.to_i - 1]
+        else
+          puts 'Choose correct card'
+          return
         end
       else
         puts "There is no active cards!\n"
-      end
-    end
-=end
-    def send_money
-      #@cashflow.send_money
-
-      puts 'Choose the card for sending:'
-
-    if @current_account.card.any?
-      @current_account.card.each_with_index do |c, i|
-        puts "- #{c[:number]}, #{c[:type]}, press #{i + 1}"
-      end
-      puts "press `exit` to exit\n"
-      answer = gets.chomp
-      exit if answer == 'exit'
-      if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
-        sender_card = @current_account.card[answer&.to_i.to_i - 1]
-      else
-        puts 'Choose correct card'
         return
       end
-    else
-      puts "There is no active cards!\n"
-      return
-    end
 
-    puts 'Enter the recipient card:'
-    a2 = gets.chomp
-    if a2.length > 15 && a2.length < 17
-      all_cards = @storage.accounts.map(&:card).flatten
-      if all_cards.select { |card| card[:number] == a2 }.any?
-        recipient_card = all_cards.select { |card| card[:number] == a2 }.first
-      else
-        puts "There is no card with number #{a2}\n"
-        return
-      end
-    else
-      puts 'Please, input correct number of card'
-      return
-    end
-
-    loop do
-      puts 'Input the amount of money you want to withdraw'
-      a3 = gets.chomp
-      if a3&.to_i.to_i.positive?
-        sender_balance = sender_card[:balance] - a3&.to_i.to_i - @tax.sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)
-        recipient_balance = recipient_card[:balance] + a3&.to_i.to_i - @tax.put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i)
-
-        if sender_balance.negative?
-          puts "You don't have enough money on card for such operation"
-        elsif put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i) >= a3&.to_i.to_i
-          puts 'There is no enough money on sender card'
+      puts 'Enter the recipient card:'
+      a2 = gets.chomp
+      if a2.length > 15 && a2.length < 17
+        all_cards = @storage.load_data.map(&:card).flatten
+        if all_cards.select { |card| card[:number] == a2 }.any?
+          recipient_card = all_cards.select { |card| card[:number] == a2 }.first
         else
-          sender_card[:balance] = sender_balance
-          @current_account.card[answer&.to_i.to_i - 1] = sender_card
-          new_accounts = []
-          accounts.each do |ac|
-            if ac.login == @current_account.login
-              new_accounts.push(@current_account)
-            elsif ac.card.map { |card| card[:number] }.include? a2
-              recipient = ac
-              new_recipient_cards = []
-              recipient.card.each do |card|
-                card[:balance] = recipient_balance if card[:number] == a2
-                new_recipient_cards.push(card)
-              end
-              recipient.card = new_recipient_cards
-              new_accounts.push(recipient)
-            end
-          end
-          @storage.save_data(new_accounts)
-          puts "Money #{a3&.to_i.to_i}$ was put on #{sender_card[:number]}. Balance: #{recipient_balance}. Tax: #{@tax.put_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
-          puts "Money #{a3&.to_i.to_i}$ was put on #{a2}. Balance: #{sender_balance}. Tax: #{@tax.sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
-          break
+          puts "There is no card with number #{a2}\n"
+          return
         end
       else
-        puts 'You entered wrong number!\n'
+        puts 'Please, input correct number of card'
+        return
       end
-    end
-    end
 
+      loop do
+        puts 'Input the amount of money you want to withdraw'
+        a3 = gets.chomp
+
+        if a3&.to_i.to_i.positive?
+          sender_balance = sender_card[:balance] - a3&.to_i.to_i - @tax.sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)
+          recipient_balance = recipient_card[:balance] + a3&.to_i.to_i - @tax.put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i)
+  
+          if sender_balance.negative?
+            puts "You don't have enough money on card for such operation"
+          elsif @tax.put_tax(recipient_card[:type], recipient_card[:balance], recipient_card[:number], a3&.to_i.to_i) >= a3&.to_i.to_i
+            puts 'There is no enough money on sender card'
+          else
+            sender_card[:balance] = sender_balance
+            @current_account.card[answer&.to_i.to_i - 1] = sender_card
+            new_accounts = []
+            accounts.each do |ac|
+              if ac.login == @current_account.login
+                new_accounts.push(@current_account)
+              elsif ac.card.map { |card| card[:number] }.include? a2
+                recipient = ac
+                new_recipient_cards = []
+                recipient.card.each do |card|
+                  card[:balance] = recipient_balance if card[:number] == a2
+                  new_recipient_cards.push(card)
+                end
+                recipient.card = new_recipient_cards
+                new_accounts.push(recipient)
+              end
+            end
+            @storage.save_data(new_accounts)
+            puts "Money #{a3&.to_i.to_i}$ was put on #{sender_card[:number]}. Balance: #{recipient_balance}. Tax: #{@tax.put_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
+            puts "Money #{a3&.to_i.to_i}$ was put on #{a2}. Balance: #{sender_balance}. Tax: #{@tax.sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
+            break
+          end
+        else
+          puts 'You entered wrong number!\n'
+        end
+      end
+    
+    end
+=end
     #def withdraw_tax(type, _balance, _number, amount)
     #  @tax.withdraw_tax(type, _balance, _number, amount)
     #end

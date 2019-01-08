@@ -1,0 +1,29 @@
+---
+- !ruby/object:Banking::Account
+  errors: []
+  card:
+  - :type: capitalist
+    :number: '8018617291491108'
+    :balance: 100.0
+  - :type: virtual
+    :number: '8501876011065302'
+    :balance: 150.0
+  storage: !ruby/object:Banking::Storage {}
+  name: Ret
+  age: 45
+  login: qwerty
+  password: qwerty
+- !ruby/object:Banking::Account
+  errors: []
+  card:
+  - :type: usual
+    :number: '6192982331175900'
+    :balance: 50.0
+  - :type: virtual
+    :number: '2335834280460403'
+    :balance: 150.0
+  storage: !ruby/object:Banking::Storage {}
+  name: Zen
+  age: 34
+  login: zxcvbn
+  password: zxcvbn

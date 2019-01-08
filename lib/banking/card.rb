@@ -5,22 +5,20 @@ module Banking
     attr_accessor :storage, :current_account, :card_any_exists, :card_deleted
 
     def initialize
-      @current_account = Account.new#current_account
+      @current_account = Account.new
       @storage = Storage.new
     end
 
     def show_cards
       cards = []
       if @current_account.card.any?
-        #puts @current_account.card
         @current_account.card.each do |c|
-          #aa = "- #{c[:number]}, #{c[:type]}"
           cards.push("- #{c[:number]}, #{c[:type]}")
         end
       else
         cards.push("There is no active cards!\n")
       end
-      return cards
+      cards
     end
 
     def create_card(card_type)
@@ -31,21 +29,14 @@ module Banking
         when 'virtual' then card = { type: 'virtual', number: Array.new(16) { rand(10) }.join, balance: 150.00 }
         end
 
-        cards = @current_account.card << card  #<< card #TODO more cards
+        cards = @current_account.card << card
         @current_account.card = cards
-        new_accounts = []
 
-        @storage.load_data.each do |ac| #!!!! .accounts
-          if ac.login == @current_account.login
-            new_accounts.push(@current_account)
-          else
-            new_accounts.push(ac)
-          end
-        end
-        Storage.new.save_data(new_accounts)
+        @storage.update_data(@current_account)
+
         false
       else
-        return "Wrong card type. Try again!\n"
+        "Wrong card type. Try again!\n"
       end
     end
 
@@ -59,20 +50,18 @@ module Banking
         end
         cards_list_print += "press `exit` to exit\n"
         @card_any_exists = true
-        return cards_list_print
+        cards_list_print
       else
-        return "There is no active cards!\n"
-        #break
+        "There is no active cards!\n"
       end
     end
 
     def card_for_destroying(answer)
-      descrip = {} 
       if answer&.to_i.to_i <= @current_account.card.length && answer&.to_i.to_i.positive?
-        descrip = { content: "Are you sure you want to delete #{@current_account.card[answer&.to_i.to_i - 1][:number]}?[y/n]",
+        { content: "Are you sure you want to delete #{@current_account.card[answer&.to_i.to_i - 1][:number]}?[y/n]",
                     error: false }
       else
-        descrip = { content: "You entered wrong number!\n", error: true }
+        { content: "You entered wrong number!\n", error: true }
       end
     end
 
@@ -80,23 +69,11 @@ module Banking
       @card_deleted = false
       if delete_card == 'y'
         @current_account.card.delete_at(answer&.to_i.to_i - 1)
-          new_accounts = []
-          @storage.load_data.each do |ac| #!!!accoumts
-            if ac.login == @current_account.login
-              new_accounts.push(@current_account)
-            else
-              new_accounts.push(ac)
-            end
-            #new_accounts.push(@current_account) if ac.login == @current_account.login
-            #new_accounts.push(ac)
-          end
-          @storage.save_data(new_accounts)
-          @card_deleted = true
-          #break  !!!!!!!!!!!!!
-      #else
-      #  return
+
+        @storage.update_data(@current_account)
+
+        @card_deleted = true
       end
     end
-
   end
 end

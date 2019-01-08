@@ -2,25 +2,39 @@
 
 module Banking
   class Storage
-    #attr_accessor :file_path
-
-    #def initialize      
-    #  @file_path = 'accounts.yml'
-    #end  
-
     def load_data
       return [] unless File.exist?(DB_PATH)
       YAML.load_file(DB_PATH)
-
-      #if File.exist?(@file_path)
-      #  YAML.load_file(@file_path)
-      #else
-      #  []
-      #end
     end
 
-    def save_data(datas)
-      File.open(DB_PATH, 'w') { |f| f.write datas.to_yaml }
+    def save_data(data)
+      File.open(DB_PATH, 'w') { |f| f.write data.to_yaml }
+    end
+
+    def update_data(current_account)
+      new_accounts = []
+      load_data.each do |ac|
+        if ac.login == current_account.login
+          new_accounts.push(current_account)
+        else
+          new_accounts.push(ac)
+        end
+      end
+      save_data(new_accounts)
+    end
+
+    def update_card_balance(card_number, card_balance)
+      load_data.each do |ac|
+        if ac.card.map { |card| card[:number] }.include? card_number
+          new_cards = []
+          ac.card.each do |card|
+            card[:balance] = card_balance if card[:number] == card_number
+            new_cards.push(card)
+          end
+          ac.card = new_cards
+          update_data(ac)
+        end
+      end
     end
 
     #def entity_exists?(login)

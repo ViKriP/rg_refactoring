@@ -34,9 +34,7 @@ module Banking
 
         break if @current_account.errors.empty?
 
-        @current_account.errors.each do |e|
-          puts e
-        end
+        @current_account.errors.each { |error| puts error }
         @current_account.errors = []
       end
       
@@ -57,7 +55,7 @@ module Banking
         puts 'Enter your password'
         password = gets.chomp
 
-        if accounts.map { |a| { login: a.login, password: a.password } }.include?({ login: login, password: password })
+        if accounts.map { |account| { login: account.login, password: account.password } }.include?({ login: login, password: password })
           @current_account = accounts.select { |usr| login == usr.login }.first
           break
         else
@@ -93,7 +91,7 @@ module Banking
         when 'WM' then withdraw_money
         when 'SM' then send_money
         when 'DA' then destroy_account
-          exit
+          #exit
         when 'exit' then exit
           break
         else
@@ -135,92 +133,79 @@ module Banking
       end
     end
 
-    def withdraw_money
-      puts "Choose the card for withdrawing:\n"
+    def card_determination
+      @error = false
       puts @cashflow.cards_list
-
-      loop do
-        answer = gets.chomp
-        break if answer == 'exit'
-
-        card_selection = @cashflow.card_selection(answer)
-
-        if card_selection[:error]
-          puts card_selection[:message]
-          return
-        end
-        current_card = card_selection[:current_card]
-
-        loop do
-          puts 'Input the amount of money you want to withdraw'
-          a2 = gets.chomp
-
-          amount = @cashflow.correct_amount(a2)
-
-          if amount[:error]
-            puts amount[:message]
-            return
-          end
-
-          withdrawing_finality = @cashflow.withdraw_money(current_card, a2, answer)
-
-          if withdrawing_finality[:return]
-            puts withdrawing_finality[:message]
-            return
-          end
-        end
+      unless @cashflow.card_any_exists
+        @error = true
+        return
       end
+
+      answer = gets.chomp
+
+      @error = true if answer == 'exit'
+
+      card_selection = @cashflow.card_selection(answer)
+
+      if card_selection[:error]
+        puts card_selection[:message]
+        @error = true
+      else
+       { current_card: card_selection[:current_card], answer: answer }
+      end
+    end
+
+    def transaction_amount
+      a2 = gets.chomp
+
+      amount = @cashflow.correct_amount(a2)
+
+      if amount[:error]
+        puts amount[:message]
+        @error = true
+      end
+      { a2: a2 }
     end
 
     def put_money
       puts 'Choose the card for putting:'
-      puts @cashflow.cards_list
+      
+      card = card_determination
+      return if @error
 
-      loop do
-        answer = gets.chomp
-        break if answer == 'exit'
+      puts 'Input the amount of money you want to put on your card'
 
-        card_selection = @cashflow.card_selection(answer)
+      amount = transaction_amount
+      return if @error
 
-        if card_selection[:error]
-          puts card_selection[:message]
-          return
-        end
-        current_card = card_selection[:current_card]
+      puts @cashflow.put_money(card[:current_card], amount[:a2], card[:answer])
+      return
+    end
 
-        loop do
-          puts 'Input the amount of money you want to put on your card'
-          a2 = gets.chomp
+    def withdraw_money
+      puts "Choose the card for withdrawing:\n"
+      
+      card = card_determination
+      return if @error
 
-          amount = @cashflow.correct_amount(a2)
+      puts 'Input the amount of money you want to withdraw'
 
-          if amount[:error]
-            puts amount[:message]
-            return
-          end
+      amount = transaction_amount
+      return if @error
 
-          puts @cashflow.put_money(current_card, a2, answer)
-          return
-        end
+      withdrawing_finality = @cashflow.withdraw_money(card[:current_card], amount[:a2], card[:answer])
+
+      if withdrawing_finality[:return]
+        puts withdrawing_finality[:message]
+        return
       end
     end
 
     def send_money
       puts 'Choose the card for sending:'
 
-      puts @cashflow.cards_list
-      return unless @cashflow.card_any_exists
-
-      answer = gets.chomp
-      exit if answer == 'exit'
-
-      card_selection = @cashflow.card_selection(answer)
-
-      if card_selection[:error]
-        puts card_selection[:message]
-        return
-      end
-      sender_card = card_selection[:current_card]
+      sender_card = card_determination
+      return if @error
 
       puts 'Enter the recipient card:'
       a2 = gets.chomp
@@ -237,7 +222,7 @@ module Banking
         puts 'Input the amount of money you want to withdraw'
         a3 = gets.chomp
 
-        card_balance = @cashflow.card_balance(a3, sender_card, recipient_card)
+        card_balance = @cashflow.card_balance(a3, sender_card[:current_card], recipient_card)
         if card_balance[:error]
           puts card_balance[:message]
           return
@@ -245,7 +230,7 @@ module Banking
         sender_balance = card_balance[:sender_balance]
         recipient_balance = card_balance[:recipient_balance]
 
-        dd = @cashflow.send_money(a3, a2, answer, sender_card, recipient_card, sender_balance, recipient_balance)
+        dd = @cashflow.send_money(a3, a2, sender_card[:answer], sender_card[:current_card], recipient_card, sender_balance, recipient_balance)
         puts dd[:message]
         break unless dd[:error]
       end

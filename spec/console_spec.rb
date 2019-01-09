@@ -10,8 +10,9 @@ RSpec.describe Console do
     if_you_want_to_delete: 'If you want to delete:',
     choose_card: 'Choose the card for putting:',
     choose_card_withdrawing: 'Choose the card for withdrawing:',
+    choose_card_sending: 'Choose the card for sending:',
     input_amount: 'Input the amount of money you want to put on your card',
-    withdraw_amount: 'Input the amount of money you want to withdraw'
+    withdraw_amount: 'Input the amount of money you want to withdraw'    
   }.freeze
 
   HELLO_PHRASES = [
@@ -616,6 +617,7 @@ RSpec.describe Console do
     context 'without cards' do
       it 'shows message about not active cards' do
         current_subject.instance_variable_set(:@current_account, instance_double('Account', card: []))
+        current_subject.cashflow.instance_variable_set(:@current_account, instance_double('Account', card: []))
         expect { current_subject.put_money }.to output(/#{ERROR_PHRASES[:no_active_cards]}/).to_stdout
       end
     end
@@ -625,13 +627,21 @@ RSpec.describe Console do
       let(:card_two) { { number: 2, type: 'test2' } }
       let(:fake_cards) { [card_one, card_two] }
 
+      before do
+        allow(subject).to receive(:loop).and_yield
+      end
+
       context 'with correct outout' do
         it do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
+          allow(current_subject.cashflow.current_account).to receive(:card) { fake_cards }
+
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
           current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
+
           allow(current_subject).to receive_message_chain(:gets, :chomp) { 'exit' }
           expect { current_subject.put_money }.to output(/#{COMMON_PHRASES[:choose_card]}/).to_stdout
+          
           fake_cards.each_with_index do |card, i|
             message = /- #{card[:number]}, #{card[:type]}, press #{i + 1}/
             expect { current_subject.put_money }.to output(message).to_stdout
@@ -643,7 +653,11 @@ RSpec.describe Console do
       context 'when exit if first gets is exit' do
         it do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
+          allow(current_subject.cashflow.current_account).to receive(:card) { fake_cards }
+
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
+
           expect(current_subject).to receive_message_chain(:gets, :chomp) { 'exit' }
           current_subject.put_money
         end
@@ -651,16 +665,18 @@ RSpec.describe Console do
 
       context 'with incorrect input of card number' do
         before do
-          allow(current_subject.current_account).to receive(:card) { fake_cards }
-          current_subject.instance_variable_set(:@current_account, current_subject.current_account)
+          allow(current_subject.cashflow.current_account).to receive(:card) { fake_cards }
+          current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
         end
 
         it do
+          allow(current_subject.cashflow.current_account).to receive(:card) { fake_cards }
           allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(fake_cards.length + 1, 'exit')
           expect { current_subject.put_money }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
 
         it do
+          allow(current_subject.cashflow.current_account).to receive(:card) { fake_cards }
           allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(-1, 'exit')
           expect { current_subject.put_money }.to output(/#{ERROR_PHRASES[:wrong_number]}/).to_stdout
         end
@@ -678,8 +694,10 @@ RSpec.describe Console do
 
         before do
           current_subject.current_account.instance_variable_set(:@card, fake_cards)
+          current_subject.cashflow.current_account.instance_variable_set(:@card, fake_cards)
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
           current_subject.cashflow.instance_variable_set(:@current_account, current_subject.current_account)
+
           allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(*commands)
         end
 
@@ -833,7 +851,46 @@ RSpec.describe Console do
           end
         end
       end
+
+      context 'with money'do
+        let(:card_1) { { number: 1, type: 'capitalist', balance: 0 } }
+        let(:card_2) { { number: 2, type: 'capitalist', balance: 200 } }
+        let(:fake_cards) { [card_1, card_2] }
+
+        context 'when there is no money' do
+          before do
+            current_subject.cashflow.current_account.instance_variable_set(:@card, fake_cards)
+            allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(1, 10)
+          end
+
+          it do
+            expect { current_subject.withdraw_money }.to output(/You don't have enough money on card for such operation/).to_stdout
+          end
+        end
+
+        context "when there is money" do
+          before do
+            current_subject.cashflow.current_account.instance_variable_set(:@card, fake_cards)
+            allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(2, 10)
+          end
+
+          it do
+            expect { current_subject.withdraw_money }.to output(/Money 10 withdrawed from/).to_stdout
+          end
+        end
+      end
     end
   end
+
+  describe '#send_money' do
+    context 'without cards' do
+      it 'shows message about not active cards' do
+        current_subject.instance_variable_set(:@current_account, instance_double('Account', card: []))
+        current_subject.cashflow.instance_variable_set(:@current_account, instance_double('Account', card: []))
+        expect { current_subject.send_money }.to output(/#{ERROR_PHRASES[:no_active_cards]}/).to_stdout
+      end
+    end
+  end
+
 end
 end

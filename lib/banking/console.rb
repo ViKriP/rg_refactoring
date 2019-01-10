@@ -4,7 +4,7 @@ require 'yaml'
 require 'pry'
 
 module Banking
-  class Console
+  class Console < ConsoleAccount
     attr_accessor :storage, :cashflow, :current_account, :card
 
     def initialize
@@ -12,69 +12,16 @@ module Banking
       @card = Card.new
       @storage = Storage.new
       @cashflow = CashFlow.new
-      @tax = Tax.new
+      #@tax = Tax.new
     end
 
-    def console
+    def start
       HELLO_MSG.each { |msg| puts msg }
 
       case gets.chomp
       when 'create' then create
       when 'load' then load
       else exit
-      end
-    end
-
-    def create
-      loop do
-        name_input
-        age_input
-        login_input
-        password_input
-
-        break if @current_account.errors.empty?
-
-        @current_account.errors.each { |error| puts error }
-        @current_account.errors = []
-      end
-      
-      new_accounts = accounts << @current_account
-      
-      @card.current_account = @current_account
-      @cashflow.current_account = @current_account
-      @storage.save_data(new_accounts)
-      main_menu
-    end
-
-    def load
-      loop do
-        return create_the_first_account unless accounts.any?
-  
-        puts 'Enter your login'
-        login = gets.chomp
-        puts 'Enter your password'
-        password = gets.chomp
-
-        if accounts.map { |account| { login: account.login, password: account.password } }.include?({ login: login, password: password })
-          @current_account = accounts.select { |usr| login == usr.login }.first
-          break
-        else
-          puts 'There is no account with given credentials'
-          next
-        end
-       
-      end
-      @card.current_account = @current_account
-      @cashflow.current_account = @current_account
-      main_menu
-    end
-
-    def create_the_first_account
-      puts 'There is no active accounts, do you want to be the first?[y/n]'
-      if gets.chomp == 'y'
-        return create
-      else
-        return console
       end
     end
 
@@ -131,140 +78,6 @@ module Banking
           return unless @card.card_deleted
         end
       end
-    end
-
-    def card_determination
-      @error = false
-      puts @cashflow.cards_list
-      unless @cashflow.card_any_exists
-        @error = true
-        return
-      end
-
-      answer = gets.chomp
-
-      @error = true if answer == 'exit'
-
-      card_selection = @cashflow.card_selection(answer)
-
-      if card_selection[:error]
-        puts card_selection[:message]
-        @error = true
-      else
-       { current_card: card_selection[:current_card], answer: answer }
-      end
-    end
-
-    def transaction_amount
-      a2 = gets.chomp
-
-      amount = @cashflow.correct_amount(a2)
-
-      if amount[:error]
-        puts amount[:message]
-        @error = true
-      end
-      { a2: a2 }
-    end
-
-    def put_money
-      puts 'Choose the card for putting:'
-      
-      card = card_determination
-      return if @error
-
-      puts 'Input the amount of money you want to put on your card'
-
-      amount = transaction_amount
-      return if @error
-
-      puts @cashflow.put_money(card[:current_card], amount[:a2], card[:answer])
-      return
-    end
-
-    def withdraw_money
-      puts "Choose the card for withdrawing:\n"
-      
-      card = card_determination
-      return if @error
-
-      puts 'Input the amount of money you want to withdraw'
-
-      amount = transaction_amount
-      return if @error
-
-      withdrawing_finality = @cashflow.withdraw_money(card[:current_card], amount[:a2], card[:answer])
-
-      if withdrawing_finality[:return]
-        puts withdrawing_finality[:message]
-        return
-      end
-    end
-
-    def send_money
-      puts 'Choose the card for sending:'
-
-      sender_card = card_determination
-      return if @error
-
-      puts 'Enter the recipient card:'
-      a2 = gets.chomp
-
-      recipient_card = @cashflow.recipient_card_get(a2)
-      if recipient_card[:error]
-        puts recipient_card[:message]
-        return
-      end
-
-      recipient_card = recipient_card[:recipient_card]
-
-      loop do
-        puts 'Input the amount of money you want to withdraw'
-        a3 = gets.chomp
-
-        card_balance = @cashflow.card_balance(a3, sender_card[:current_card], recipient_card)
-        if card_balance[:error]
-          puts card_balance[:message]
-          return
-        end
-        sender_balance = card_balance[:sender_balance]
-        recipient_balance = card_balance[:recipient_balance]
-
-        dd = @cashflow.send_money(a3, a2, sender_card[:answer], sender_card[:current_card], recipient_card, sender_balance, recipient_balance)
-        puts dd[:message]
-        break unless dd[:error]
-      end
-    end
-
-    def destroy_account
-      puts 'Are you sure you want to destroy account?[y/n]'
-      @current_account.destroy_account(gets.chomp)
-    end
-
-    private
-  
-    def name_input
-      puts 'Enter your name'
-      @current_account.name_input(gets.chomp)
-    end
-
-    def login_input
-      puts 'Enter your login'
-      @current_account.login_input(gets.chomp)
-    end
-
-    def password_input
-      puts 'Enter your password'
-      @current_account.password_input(gets.chomp)
-    end
-
-    def age_input
-      puts 'Enter your age'
-      @current_account.age_input(gets.chomp)
-    end
-
-    def accounts
-      @storage.load_data
     end
   end
 end

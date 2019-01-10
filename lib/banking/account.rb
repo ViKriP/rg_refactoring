@@ -36,7 +36,7 @@ module Banking
       @errors.push('Login must present') if @login.empty?
       @errors.push('Login must be longer then 4 symbols') if @login.length < 4
       @errors.push('Login must be shorter then 20 symbols') if @login.length > 20
-      @errors.push('Such account is already exists') if account_exists?
+      @errors.push('Such account is already exists') if @storage.account_exists?(@login)
     end
 
     def password_input(password)
@@ -53,10 +53,6 @@ module Banking
       else
         @errors.push('Your Age must be greeter then 23 and lower then 90')
       end
-    end
-
-    def account_exists?
-      @storage.load_data.detect { |account_in_db| account_in_db.login == @login }
     end
   end
 end

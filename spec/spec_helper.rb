@@ -12,6 +12,8 @@ require './lib/banking/tax'
 require './lib/banking/card'
 require './lib/banking/cash_flow'
 require './lib/banking/account'
+require './lib/banking/console_cashflow'
+require './lib/banking/console_account'
 require './lib/banking/console'
 
 RSpec.configure do |config|

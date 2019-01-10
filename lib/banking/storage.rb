@@ -37,6 +37,21 @@ module Banking
       end
     end
 
+    def account_exists?(login)
+      #puts "-- -- #{load_data}"
+      load_data.detect { |account_in_db| account_in_db.login == login }
+    end
+
+    def user_account(login, password)
+      if load_data.map { |account| { login: account.login, password: account.password } }.include?({ login: login, password: password })
+        { account: load_data.select { |usr| login == usr.login }.first, error: false }
+        #break
+      else
+        { message: 'There is no account with given credentials', error: true }
+        #next
+      end
+    end
+
     #def entity_exists?(login)
     #  load_data.map(&:login).include?(login)
     #end

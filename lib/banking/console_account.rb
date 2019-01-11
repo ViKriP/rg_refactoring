@@ -56,7 +56,7 @@ module Banking
         @current_account.destroy_account(gets.chomp)
       end
   
-      #private
+      private
    
       def name_input
         puts 'Enter your name'

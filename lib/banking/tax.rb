@@ -2,26 +2,27 @@
 
 module Banking
   class Tax
-    def withdraw_tax(type, _balance, _number, amount)
-      return amount * 0.05  if type == 'usual'
-      return amount * 0.04  if type == 'capitalist'
-      return amount * 0.88 if type == 'virtual'
+
+    def withdraw_tax(type, amount)
+      return UsualTax.new.withdraw_tax(amount) if type == 'usual'
+      return CapitalistTax.new.withdraw_tax(amount) if type == 'capitalist'
+      return VirtualTax.new.withdraw_tax(amount) if type == 'virtual'
 
       0
     end
 
-    def put_tax(type, _balance, _number, amount)
-      return amount * 0.02 if type == 'usual'
-      return 10 if type == 'capitalist'
-      return 1 if type == 'virtual'
-  
+    def put_tax(type, amount)
+      return UsualTax.new.put_tax(amount) if type == 'usual'
+      return CapitalistTax.new.put_tax(amount) if type == 'capitalist'
+      return VirtualTax.new.put_tax(amount) if type == 'virtual'
+
       0
     end
 
-    def sender_tax(type, _balance, _number, amount)
-      return 20 if type == 'usual'
-      return amount * 0.1  if type == 'capitalist'
-      return 1 if type == 'virtual'
+    def sender_tax(type, amount)
+      return UsualTax.new.sender_tax(amount) if type == 'usual'
+      return CapitalistTax.new.sender_tax(amount) if type == 'capitalist'
+      return VirtualTax.new.sender_tax(amount) if type == 'virtual'
 
       0
     end

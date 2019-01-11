@@ -2,6 +2,8 @@
 
 module Banking
   class Card
+    include Constants
+    
     attr_accessor :storage, :current_account, :card_any_exists, :card_deleted
 
     def initialize
@@ -24,9 +26,9 @@ module Banking
     def create_card(card_type)
       if %w[usual capitalist virtual].include?(card_type)
         case card_type
-        when 'usual' then card = { type: 'usual', number: Array.new(16) { rand(10) }.join, balance: 50.00 }
-        when 'capitalist' then card = { type: 'capitalist', number: Array.new(16) { rand(10) }.join, balance: 100.00 }
-        when 'virtual' then card = { type: 'virtual', number: Array.new(16) { rand(10) }.join, balance: 150.00 }
+        when 'usual' then card = generate_card('usual', 50.00)
+        when 'capitalist' then card = generate_card('capitalist', 100.00)
+        when 'virtual' then card = generate_card('virtual', 150.00)
         end
 
         cards = @current_account.card << card
@@ -74,6 +76,16 @@ module Banking
 
         @card_deleted = true
       end
+    end
+
+    private
+
+    def generate_card_number
+      Array.new(CARD_NUMBER_LENGTH) { rand(NUMBERS_FOR_CARD) }.join
+    end
+
+    def generate_card(type_card, balans_card)
+      { type: type_card, number: generate_card_number, balance: balans_card }
     end
   end
 end

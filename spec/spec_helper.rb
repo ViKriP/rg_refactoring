@@ -6,8 +6,12 @@ SimpleCov.start do
 end
 
 require './lib/banking'
-require './lib/banking/msgs'
+require './lib/banking/constants'
 require './lib/banking/storage'
+require './lib/banking/base_tax'
+require './lib/banking/usual_tax'
+require './lib/banking/virtual_tax'
+require './lib/banking/capitalist_tax'
 require './lib/banking/tax'
 require './lib/banking/card'
 require './lib/banking/cash_flow'

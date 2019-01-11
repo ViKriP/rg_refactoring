@@ -746,7 +746,7 @@ RSpec.describe Console do
           context 'with tax lower than amount' do
             let(:custom_cards) do
               [
-                { type: 'usual', balance: default_balance, tax: correct_money_amount_greater_than_tax * 0.02, number: 1 },
+                { type: 'usual', balance: default_balance, tax: correct_money_amount_greater_than_tax * 2 / 100, number: 1 },
                 { type: 'capitalist', balance: default_balance, tax: 10, number: 1 },
                 { type: 'virtual', balance: default_balance, tax: 1, number: 1 }
               ]
@@ -760,11 +760,14 @@ RSpec.describe Console do
 
             it do
               custom_cards.each do |custom_card|
+                stub_const('Banking::DB_PATH', OVERRIDABLE_FILENAME)
+
                 allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(*commands)
                 allow(current_subject.cashflow.storage).to receive(:load_data) { [current_subject.current_account] }
+
                 current_subject.current_account.instance_variable_set(:@card, [custom_card, card_one, card_two])
                 current_subject.cashflow.current_account.instance_variable_set(:@card, [custom_card, card_one, card_two])
-                stub_const('Banking::DB_PATH', OVERRIDABLE_FILENAME)
+
                 new_balance = default_balance + correct_money_amount_greater_than_tax - custom_card[:tax]
 
                 expect { current_subject.put_money }.to output(

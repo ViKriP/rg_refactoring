@@ -5,6 +5,8 @@ require 'pry'
 
 module Banking
   class Console < ConsoleAccount
+    include Constants
+
     attr_accessor :storage, :cashflow, :current_account, :card
 
     def initialize
@@ -38,7 +40,7 @@ module Banking
         when 'WM' then withdraw_money
         when 'SM' then send_money
         when 'DA' then destroy_account
-          #exit
+          exit
         when 'exit' then exit
           break
         else
@@ -54,8 +56,7 @@ module Banking
     def create_card
       loop do
         CREATE_CARD_MSG.each { |msg| puts msg }
-        result_card_create = @card.create_card(gets.chomp)
-        break unless result_card_create
+        break unless result_card_create = @card.create_card(gets.chomp)
           puts result_card_create
       end
     end

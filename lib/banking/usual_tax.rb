@@ -7,7 +7,6 @@ module Banking
     end
 
     def put_percent
-      puts ")k 2"
       2
     end
 

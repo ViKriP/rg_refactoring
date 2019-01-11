@@ -2,7 +2,7 @@
 
 module Banking
   class CapitalistTax < BaseTax
-     def withdraw_percent
+    def withdraw_fixed
       4
     end
 

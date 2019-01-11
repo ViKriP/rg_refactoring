@@ -14,7 +14,6 @@ module Banking
       @card = Card.new
       @storage = Storage.new
       @cashflow = CashFlow.new
-      #@tax = Tax.new
     end
 
     def start
@@ -40,9 +39,9 @@ module Banking
         when 'WM' then withdraw_money
         when 'SM' then send_money
         when 'DA' then destroy_account
-          exit
+        exit
         when 'exit' then exit
-          break
+        break
         else
           puts "Wrong command. Try again!\n"
         end
@@ -57,7 +56,8 @@ module Banking
       loop do
         CREATE_CARD_MSG.each { |msg| puts msg }
         break unless result_card_create = @card.create_card(gets.chomp)
-          puts result_card_create
+
+        puts result_card_create
       end
     end
 
@@ -72,12 +72,7 @@ module Banking
         destroying = @card.card_for_destroying(answer)
         puts destroying[:content]
 
-        unless destroying[:error]
-          @card.destroy_card(answer, gets.chomp)
-
-          break if @card.card_deleted
-          return unless @card.card_deleted
-        end
+        return @card.destroy_card(answer, gets.chomp) unless destroying[:error]
       end
     end
   end

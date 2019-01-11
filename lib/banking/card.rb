@@ -3,7 +3,7 @@
 module Banking
   class Card
     include Constants
-    
+
     attr_accessor :storage, :current_account, :card_any_exists, :card_deleted
 
     def initialize
@@ -61,7 +61,7 @@ module Banking
     def card_for_destroying(answer)
       if answer.to_i <= @current_account.card.length && answer.to_i.positive?
         { content: "Are you sure you want to delete #{@current_account.card[answer.to_i - 1][:number]}?[y/n]",
-                    error: false }
+          error: false }
       else
         { content: "You entered wrong number!\n", error: true }
       end
@@ -69,6 +69,7 @@ module Banking
 
     def destroy_card(answer, delete_card)
       @card_deleted = false
+
       if delete_card == 'y'
         @current_account.card.delete_at(answer.to_i - 1)
 

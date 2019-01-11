@@ -11,11 +11,10 @@ module Banking
       puts @cashflow.put_money(@selected_card[:current_card],
                                @amount_inputted[:amount_inputted],
                                @selected_card[:answer])
-      return
     end
 
     def withdraw_money
-      choose_card = "Choose the card for withdrawing:\n"
+      choose_card = 'Choose the card for withdrawing:'
       input_money = 'Input the amount of money you want to withdraw'
       transaction_request(choose_card, input_money)
       return if @error
@@ -59,12 +58,10 @@ module Banking
 
       card_selection = @cashflow.card_selection(answer)
 
-      if card_selection[:error]
-        puts card_selection[:message]
-        @error = true
-      else
-       { current_card: card_selection[:current_card], answer: answer }
-      end
+      return { current_card: card_selection[:current_card], answer: answer } unless card_selection[:error]
+
+      puts(card_selection[:message])
+      @error = true
     end
 
     def transaction_amount
@@ -81,7 +78,7 @@ module Banking
 
     def transaction_request(choose_card, input_money)
       puts choose_card
-      
+
       @selected_card = card_determination
       return if @error
 
@@ -105,25 +102,26 @@ module Banking
 
       return puts(recipient_card[:message]) if recipient_card[:error]
 
-      { answer: sender_card[:answer], sender_card: sender_card[:current_card], recipient_card: recipient_card[:recipient_card] }
+      { answer: sender_card[:answer], sender_card: sender_card[:current_card],
+        recipient_card: recipient_card[:recipient_card] }
     end
 
-    def  transaction_data_formation(cards)
+    def transaction_data_formation(cards)
       amount = gets.chomp
 
-        card_balance = @cashflow.card_balance(amount, cards[:sender_card], cards[:recipient_card])
+      card_balance = @cashflow.card_balance(amount, cards[:sender_card], cards[:recipient_card])
 
-        @error = true if card_balance[:error]
-        return puts(card_balance[:message]) if card_balance[:error]
+      @error = true if card_balance[:error]
+      return puts(card_balance[:message]) if card_balance[:error]
 
-        sender_modified_balance = card_balance[:sender_modified_balance]
-        recipient_modified_balance = card_balance[:recipient_modified_balance]
+      sender_modified_balance = card_balance[:sender_modified_balance]
+      recipient_modified_balance = card_balance[:recipient_modified_balance]
 
-        cash = {amount: amount,
-                sender_modified_balance: sender_modified_balance,
-                recipient_modified_balance: recipient_modified_balance}
+      cash = { amount: amount,
+               sender_modified_balance: sender_modified_balance,
+               recipient_modified_balance: recipient_modified_balance }
 
-        cards.merge(cash)
+      cards.merge(cash)
     end
   end
-end  
+end

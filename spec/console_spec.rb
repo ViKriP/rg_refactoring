@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 module Banking
-RSpec.describe Console do
+  RSpec.describe Console do
   OVERRIDABLE_FILENAME = 'spec/fixtures/account.yml'.freeze
 
   COMMON_PHRASES = {
@@ -12,7 +14,7 @@ RSpec.describe Console do
     choose_card_withdrawing: 'Choose the card for withdrawing:',
     choose_card_sending: 'Choose the card for sending:',
     input_amount: 'Input the amount of money you want to put on your card',
-    withdraw_amount: 'Input the amount of money you want to withdraw'    
+    withdraw_amount: 'Input the amount of money you want to withdraw'
   }.freeze
 
   HELLO_PHRASES = [
@@ -32,11 +34,11 @@ RSpec.describe Console do
   # rubocop:disable Metrics/LineLength
 
   CREATE_CARD_PHRASES = [
-    'You could create one of 3 card types',
-    '- Usual card. 2% tax on card INCOME. 20$ tax on SENDING money from this card. 5% tax on WITHDRAWING money. For creation this card - press `usual`',
-    '- Capitalist card. 10$ tax on card INCOME. 10% tax on SENDING money from this card. 4$ tax on WITHDRAWING money. For creation this card - press `capitalist`',
-    '- Virtual card. 1$ tax on card INCOME. 1$ tax on SENDING money from this card. 12% tax on WITHDRAWING money. For creation this card - press `virtual`',
-    '- For exit - press `exit`'
+    "You could create one of 3 card types\n\n",
+    "- Usual card. \n2% tax on card INCOME. \n20$ tax on SENDING money from this card. \n5% tax on WITHDRAWING money. \nFor creation this card - press `usual`\n\n",
+    "- Capitalist card. \n10$ tax on card INCOME. \n10% tax on SENDING money from this card. \n4$ tax on WITHDRAWING money. \nFor creation this card - press `capitalist`\n\n",
+    "- Virtual card. \n1$ tax on card INCOME. \n1$ tax on SENDING money from this card. \n12% tax on WITHDRAWING money. \nFor creation this card - press `virtual`\n\n",
+    "- For exit - press `exit`\n"
   ].freeze
 
   # rubocop:enable Metrics/LineLength
@@ -165,22 +167,19 @@ RSpec.describe Console do
       end
 
       it 'with correct outout' do
-        
-        #allow(current_subject.storage).to receive(:load_data).and_return([])
+
         allow(File).to receive(:open)
         ASK_PHRASES.values.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
         ACCOUNT_VALIDATION_PHRASES.values.map(&:values).each do |phrase|
           expect(current_subject).not_to receive(:puts).with(phrase)
         end
-        
-        #allow(current_subject.storage).to receive(:load_data).and_return([])
-        #puts "--- OK #{Banking::DB_PATH} -- #{current_subject.storage.load_data}"
+
         current_subject.create
       end
 
       it 'write to file Account instance' do
         current_subject.create
-        
+
         expect(File.exist?(OVERRIDABLE_FILENAME)).to be true
         accounts = YAML.load_file(OVERRIDABLE_FILENAME)
         expect(accounts).to be_a Array
@@ -238,7 +237,6 @@ RSpec.describe Console do
           let(:error) { ACCOUNT_VALIDATION_PHRASES[:login][:exists] }
 
           before do
-            #allow(current_subject).to receive(:accounts) { [instance_double('Account', login: error_input)] }
             allow(current_subject.current_account.storage).to receive(:load_data) { [instance_double('Account', login: error_input)] }
           end
 
@@ -443,7 +441,7 @@ RSpec.describe Console do
       it 'deletes account if user inputs is y' do
         expect(current_subject).to receive_message_chain(:gets, :chomp) { success_input }
         expect(current_subject.current_account.storage).to receive(:load_data) { accounts }
-        
+
         current_subject.current_account.instance_variable_set(:@login, correct_login)
 
         current_subject.destroy_account
@@ -577,7 +575,7 @@ RSpec.describe Console do
         before do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
           current_subject.instance_variable_set(:@current_account, current_subject.current_account)
-          current_subject.card.instance_variable_set(:@current_account, current_subject.current_account)          
+          current_subject.card.instance_variable_set(:@current_account, current_subject.current_account)
         end
 
         it do
@@ -617,7 +615,6 @@ RSpec.describe Console do
           expect(File.exist?(OVERRIDABLE_FILENAME)).to be true
           file_accounts = YAML.load_file(OVERRIDABLE_FILENAME)
           expect(current_subject.current_account.card).not_to include(card_one)
-          #expect(file_accounts.first.card).not_to include(card_one)
         end
 
         it 'decline deleting' do
@@ -872,7 +869,7 @@ RSpec.describe Console do
         end
       end
 
-      context 'with money'do
+      context 'with money' do
         let(:card_1) { { number: 1, type: 'capitalist', balance: 0 } }
         let(:card_2) { { number: 2, type: 'capitalist', balance: 200 } }
         let(:fake_cards) { [card_1, card_2] }
@@ -888,7 +885,7 @@ RSpec.describe Console do
           end
         end
 
-        context "when there is money" do
+        context 'when there is money' do
           before do
             current_subject.cashflow.current_account.instance_variable_set(:@card, fake_cards)
             allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(2, 10)
@@ -911,6 +908,5 @@ RSpec.describe Console do
       end
     end
   end
-
-end
+  end
 end

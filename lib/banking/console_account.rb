@@ -37,13 +37,13 @@ module Banking
     end
 
     def create_the_first_account
-      puts 'There is no active accounts, do you want to be the first?[y/n]'
+      puts I18n.t(:no_accounts)
 
       gets.chomp == 'y' ? create : start
     end
 
     def destroy_account
-      puts 'Are you sure you want to destroy account?[y/n]'
+      puts I18n.t(:sure_delete_account)
 
       exit @storage.destroy_account(@current_account) if gets.chomp == 'y'
     end
@@ -62,29 +62,29 @@ module Banking
     end
 
     def name_input
-      puts 'Enter your name'
+      puts I18n.t(:enter_name)
       @current_account.name_input(gets.chomp)
     end
 
     def login_input
-      puts 'Enter your login'
+      puts I18n.t(:enter_login)
       @current_account.login_input(gets.chomp)
     end
 
     def password_input
-      puts 'Enter your password'
+      puts I18n.t(:enter_password)
       @current_account.password_input(gets.chomp)
     end
 
     def age_input
-      puts 'Enter your age'
+      puts I18n.t(:enter_age)
       @current_account.age_input(gets.chomp)
     end
 
     def login_in
-      puts 'Enter your login'
+      puts I18n.t(:enter_login)
       login = gets.chomp
-      puts 'Enter your password'
+      puts I18n.t(:enter_password)
       password = gets.chomp
 
       @storage.user_account(login, password)

@@ -3,9 +3,7 @@
 module Banking
   class ConsoleCashFlow
     def put_money
-      choose_card = 'Choose the card for putting:'
-      input_money = 'Input the amount of money you want to put on your card'
-      transaction_request(choose_card, input_money)
+      transaction_request(I18n.t(:card_for_putting), I18n.t(:input_putting_amount))
       return if @error
 
       puts @cashflow.put_money(@selected_card[:current_card],
@@ -15,9 +13,7 @@ module Banking
     end
 
     def withdraw_money
-      choose_card = 'Choose the card for withdrawing:'
-      input_money = 'Input the amount of money you want to withdraw'
-      transaction_request(choose_card, input_money)
+      transaction_request(I18n.t(:card_for_withdrawing), I18n.t(:input_withdraw_amount))
       return if @error
 
       withdrawing_finality = @cashflow.withdraw_money(@selected_card[:current_card],
@@ -33,7 +29,7 @@ module Banking
       return if @error
 
       loop do
-        puts 'Input the amount of money you want to withdraw'
+        puts I18n.t(:input_withdraw_amount)
 
         transaction_data = transaction_data_formation(cards)
         return if @error
@@ -98,12 +94,12 @@ module Banking
     end
 
     def cards_send_money
-      puts 'Choose the card for sending:'
+      puts I18n.t(:card_for_sending)
 
       sender_card = card_determination
       return if @error
 
-      puts 'Enter the recipient card:'
+      puts I18n.t(:enter_recipient_card)
       card_number = gets.chomp
 
       recipient_card = @cashflow.recipient_card_get(card_number)

@@ -4,20 +4,7 @@ SimpleCov.start do
   add_filter(%r{\/spec\/})
 end
 
-require './lib/banking'
-require './lib/banking/constants'
-require './lib/banking/storage'
-require './lib/banking/base_tax'
-require './lib/banking/usual_tax'
-require './lib/banking/virtual_tax'
-require './lib/banking/capitalist_tax'
-require './lib/banking/tax'
-require './lib/banking/card'
-require './lib/banking/cash_flow'
-require './lib/banking/account'
-require './lib/banking/console_cashflow'
-require './lib/banking/console_account'
-require './lib/banking/console'
+require './lib/autoloader'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+#require 'i18n'
 require 'spec_helper'
 
 module Banking
@@ -17,12 +18,13 @@ module Banking
       withdraw_amount: 'Input the amount of money you want to withdraw'
     }.freeze
 
-    HELLO_PHRASES = [
-      'Hello, we are RubyG bank!',
-      '- If you want to create account - press `create`',
-      '- If you want to load account - press `load`',
-      '- If you want to exit - press `exit`'
-    ].freeze
+    HELLO_PHRASES = "Hello, we are RubyG bank!\n - If you want to create account - press `create`\n - If you want to load account - press `load`\n - If you want to exit - press `exit`".freeze
+    #HELLO_PHRASES = [
+    #  'Hello, we are RubyG bank!',
+    #  '- If you want to create account - press `create`',
+    #  '- If you want to load account - press `load`',
+    #  '- If you want to exit - press `exit`'
+    #].freeze
 
     ASK_PHRASES = {
       name: 'Enter your name',
@@ -34,11 +36,11 @@ module Banking
     # rubocop:disable Metrics/LineLength
 
     CREATE_CARD_PHRASES = [
-      "You could create one of 3 card types\n\n",
-      "- Usual card. \n2% tax on card INCOME. \n20$ tax on SENDING money from this card. \n5% tax on WITHDRAWING money. \nFor creation this card - press `usual`\n\n",
-      "- Capitalist card. \n10$ tax on card INCOME. \n10% tax on SENDING money from this card. \n4$ tax on WITHDRAWING money. \nFor creation this card - press `capitalist`\n\n",
-      "- Virtual card. \n1$ tax on card INCOME. \n1$ tax on SENDING money from this card. \n12% tax on WITHDRAWING money. \nFor creation this card - press `virtual`\n\n",
-      "- For exit - press `exit`\n"
+     "You could create one of 3 card types\n\n",
+     " - Usual card. \n2% tax on card INCOME. \n20$ tax on SENDING money from this card. \n5% tax on WITHDRAWING money. \nFor creation this card - press `usual`\n\n",
+     " - Capitalist card. \n10$ tax on card INCOME. \n10% tax on SENDING money from this card. \n4$ tax on WITHDRAWING money. \nFor creation this card - press `capitalist`\n\n",
+     " - Virtual card. \n1$ tax on card INCOME. \n1$ tax on SENDING money from this card. \n12% tax on WITHDRAWING money. \nFor creation this card - press `virtual`\n\n",
+     " - For exit - press `exit`\n"
     ].freeze
 
     # rubocop:enable Metrics/LineLength
@@ -141,7 +143,8 @@ module Banking
       it do
         allow(current_subject).to receive_message_chain(:gets, :chomp) { 'test' }
         allow(current_subject).to receive(:exit)
-        HELLO_PHRASES.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
+        expect(current_subject).to receive(:puts).with(HELLO_PHRASES)
+        #HELLO_PHRASES.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
         current_subject.start
       end
     end
@@ -485,7 +488,7 @@ module Banking
   describe '#create_card' do
     context 'with correct outout' do
       it do
-        CREATE_CARD_PHRASES.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
+        expect(current_subject).to receive(:puts).with(CREATE_CARD_PHRASES.join)
         current_subject.current_account.instance_variable_set(:@card, [])
         current_subject.instance_variable_set(:@current_account, Account.new)
         allow(current_subject.card.storage).to receive(:load_data).and_return([])
@@ -772,7 +775,7 @@ module Banking
                 new_balance = default_balance + correct_money_amount_greater_than_tax - custom_card[:tax]
 
                 expect { current_subject.put_money }.to output(
-                  /Money #{correct_money_amount_greater_than_tax} was put on #{custom_card[:number]}. Balance: #{new_balance}. Tax: #{custom_card[:tax]}/
+                  /Money #{correct_money_amount_greater_than_tax} was put on #{custom_card[:number]}. Balance: #{new_balance}. Tax: #{custom_card[:tax].to_f}/
                 ).to_stdout
 
                 expect(File.exist?(OVERRIDABLE_FILENAME)).to be true

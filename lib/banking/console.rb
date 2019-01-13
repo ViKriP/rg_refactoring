@@ -17,7 +17,7 @@ module Banking
     end
 
     def start
-      HELLO_MSG.each { |msg| puts msg }
+      puts I18n.t(:welcome)
 
       case gets.chomp
       when 'create' then create
@@ -28,14 +28,13 @@ module Banking
 
     def main_menu
       loop do
-        puts "\nWelcome, #{@current_account.name}"
-        MAIN_OPERATIONS_MSG.each { |msg| puts msg }
+        puts I18n.t(:main_menu_message, name: @current_account.name)
 
         command = gets.chomp
 
         exit if command == 'exit'
 
-        next puts("Wrong command. Try again!\n") unless COMMAND_MENU[command]
+        next puts(I18n.t(:wrong_command)) unless COMMAND_MENU[command]
 
         send(COMMAND_MENU[command])
       end
@@ -47,7 +46,7 @@ module Banking
 
     def create_card
       loop do
-        CREATE_CARD_MSG.each { |msg| puts msg }
+        puts I18n.t(:card_types)
         break unless result_card_create = @card.create_card(gets.chomp)
 
         puts result_card_create

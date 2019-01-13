@@ -18,7 +18,7 @@ module Banking
           cards.push("- #{c[:number]}, #{c[:type]}")
         end
       else
-        cards.push("There is no active cards!\n")
+        cards.push(I18n.t(:no_cards))
       end
       cards
     end
@@ -32,31 +32,31 @@ module Banking
 
         false
       else
-        "Wrong card type. Try again!\n"
+        I18n.t(:wrong_card_type)
       end
     end
 
     def destroy_card_list
       @card_any_exists = false
 
-      return puts("There is no active cards!\n") unless @current_account.card.any?
+      return puts(I18n.t(:no_cards)) unless @current_account.card.any?
 
-      cards_list_print = "If you want to delete:\n"
+      cards_list_print = I18n.t(:want_to_delete)
 
       @current_account.card.each_with_index do |c, i|
         cards_list_print += "- #{c[:number]}, #{c[:type]}, press #{i + 1}" + "\n"
       end
-      cards_list_print += "press `exit` to exit\n"
+      cards_list_print += I18n.t(:press_exit)
       @card_any_exists = true
       cards_list_print
     end
 
     def card_for_destroying(answer)
       if answer.to_i <= @current_account.card.length && answer.to_i.positive?
-        { content: "Are you sure you want to delete #{@current_account.card[answer.to_i - 1][:number]}?[y/n]",
+        { content: I18n.t(:sure_delete_card, card: @current_account.card[answer.to_i - 1][:number]),
           error: false }
       else
-        { content: "You entered wrong number!\n", error: true }
+        { content: I18n.t(:wrong_number), error: true }
       end
     end
 

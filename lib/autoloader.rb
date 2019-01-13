@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'i18n'
+require 'yaml'
+require_relative 'i18n_config'
 require_relative 'banking'
 require_relative 'banking/constants'
 require_relative 'banking/storage'

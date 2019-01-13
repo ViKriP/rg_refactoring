@@ -63,7 +63,7 @@ module Banking
       if load_data.map { |account| { login: account.login, password: account.password } }.include?({ login: login, password: password })
         { account: load_data.select { |usr| login == usr.login }.first, error: false }
       else
-        { message: 'There is no account with given credentials', error: true }
+        { message: I18n.t(:no_such_account), error: true }
       end
     end
 

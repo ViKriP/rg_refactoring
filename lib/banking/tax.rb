@@ -11,7 +11,6 @@ module Banking
     end
 
     def put_tax(type, amount)
-  puts "-+- #{UsualTax.new.put_tax(amount).to_f} - #{amount}"
       return UsualTax.new.put_tax(amount) if type == 'usual'
       return CapitalistTax.new.put_tax(amount) if type == 'capitalist'
       return VirtualTax.new.put_tax(amount) if type == 'virtual'

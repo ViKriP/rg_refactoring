@@ -31,20 +31,13 @@ module Banking
         puts "\nWelcome, #{@current_account.name}"
         MAIN_OPERATIONS_MSG.each { |msg| puts msg }
 
-        case gets.chomp
-        when 'SC' then show_cards
-        when 'CC' then create_card
-        when 'DC' then destroy_card
-        when 'PM' then put_money
-        when 'WM' then withdraw_money
-        when 'SM' then send_money
-        when 'DA' then destroy_account
-        exit
-        when 'exit' then exit
-        break
-        else
-          puts "Wrong command. Try again!\n"
-        end
+        command = gets.chomp
+
+        exit if command == 'exit'
+
+        next puts("Wrong command. Try again!\n") unless COMMAND_MENU[command]
+
+        send(COMMAND_MENU[command])
       end
     end
 

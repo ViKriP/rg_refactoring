@@ -41,9 +41,6 @@ module Banking
     end
 
     def tax(amount, percent, fixed)
-      
-  puts "= #{"%.2f" % (amount.to_f * percent.to_f / 100.0 + fixed.to_f)} ="
-
       amount.to_f * percent.to_f / 100.0 + fixed.to_f
     end
   end

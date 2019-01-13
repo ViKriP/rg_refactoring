@@ -12,35 +12,46 @@ module Banking
       File.open(DB_PATH, 'w') { |f| f.write data.to_yaml }
     end
 
-    def update_data(current_account)
+    def update_data(current_account, change = false)
       new_accounts = []
 
-      load_data.each do |ac|
+      load_data.each do |account|
 
-        if ac.login == current_account.login
-          new_accounts.push(current_account)
+        if account.login == current_account.login
+          new_accounts.push(current_account) if change
         else
-          new_accounts.push(ac)
+          new_accounts.push(account)
         end
       end
 
       save_data(new_accounts)
     end
 
+    def update_account(current_account)
+      update_data(current_account, true)
+    end
+
+    def destroy_account(current_account)
+      update_data(current_account)
+    end
+
     def update_card_balance(card_number, card_balance)
-      load_data.each do |ac|
+      new_cards = []
+      account = user_of_card(card_number)
 
-        if ac.card.map { |card| card[:number] }.include? card_number
-          new_cards = []
+      account.card.each do |card|
+        card[:balance] = card_balance if card[:number] == card_number
 
-          ac.card.each do |card|
-            card[:balance] = card_balance if card[:number] == card_number
+        new_cards.push(card)
+      end
 
-            new_cards.push(card)
-          end
-          ac.card = new_cards
-          update_data(ac)
-        end
+      account.card = new_cards
+      update_data(account, true)
+    end
+
+    def current_status_card(card)
+      user_of_card(card[:number]).card.each do |card_base|
+        return card if card_base[:number] == card[:number]
       end
     end
 
@@ -53,6 +64,19 @@ module Banking
         { account: load_data.select { |usr| login == usr.login }.first, error: false }
       else
         { message: 'There is no account with given credentials', error: true }
+      end
+    end
+
+    private
+
+    def user_of_card(card_number)
+      load_data.each do |account|
+        if account.card.map { |card| card[:number] }.include? card_number
+
+          account.card.each do |card|
+            return account if card[:number] == card_number
+          end
+        end
       end
     end
   end

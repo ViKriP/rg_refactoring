@@ -7,13 +7,15 @@ module Banking
         registration_data
 
         break if @current_account.errors.empty?
+
+        @current_account.errors = []
       end
 
       new_accounts = @storage.load_data << @current_account
-
-      @card.current_account = @current_account
-      @cashflow.current_account = @current_account
       @storage.save_data(new_accounts)
+
+      current_account_update(@current_account)
+
       main_menu
     end
 
@@ -29,8 +31,8 @@ module Banking
         next
       end
 
-      @card.current_account = @current_account
-      @cashflow.current_account = @current_account
+      current_account_update(@current_account)
+
       main_menu
     end
 
@@ -42,7 +44,8 @@ module Banking
 
     def destroy_account
       puts 'Are you sure you want to destroy account?[y/n]'
-      @current_account.destroy_account(gets.chomp)
+
+      exit @storage.destroy_account(@current_account) if gets.chomp == 'y'
     end
 
     private
@@ -56,7 +59,6 @@ module Banking
       return if @current_account.errors.empty?
 
       @current_account.errors.each { |error| puts error }
-      @current_account.errors = []
     end
 
     def name_input

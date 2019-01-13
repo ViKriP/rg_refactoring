@@ -10,20 +10,6 @@ module Banking
       @storage = Storage.new
     end
 
-    def destroy_account(del_y)
-      if del_y == 'y'
-
-        new_accounts = []
-        @storage.load_data.each do |ac|
-          if ac.login == @login
-          else
-            new_accounts.push(ac)
-          end
-        end
-        @storage.save_data(new_accounts)
-      end
-    end
-
     def name_input(name)
       @name = name
       if @name.empty? || @name[0].upcase != @name[0]

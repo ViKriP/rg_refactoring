@@ -9,8 +9,9 @@ module Banking
       return if @error
 
       puts @cashflow.put_money(@selected_card[:current_card],
-                               @amount_inputted[:amount_inputted],
-                               @selected_card[:answer])
+                               @amount_inputted[:amount_inputted])
+
+      current_account_update(@current_account)
     end
 
     def withdraw_money
@@ -20,8 +21,9 @@ module Banking
       return if @error
 
       withdrawing_finality = @cashflow.withdraw_money(@selected_card[:current_card],
-                                                      @amount_inputted[:amount_inputted],
-                                                      @selected_card[:answer])
+                                                      @amount_inputted[:amount_inputted])
+
+      current_account_update(@current_account)
 
       return puts(withdrawing_finality[:message]) if withdrawing_finality[:return]
     end
@@ -36,15 +38,23 @@ module Banking
         transaction_data = transaction_data_formation(cards)
         return if @error
 
-        transaction = @cashflow.send_money(transaction_data)
+        transaction = sending_money(transaction_data)
 
-        puts transaction[:message]
-
-        break unless transaction[:error]
+        break unless transaction
       end
     end
 
     private
+
+    def sending_money(transaction_data)
+      transaction = @cashflow.send_money(transaction_data)
+
+      puts transaction[:message]
+
+      current_account_update(@current_account)
+
+      transaction[:error]
+    end
 
     def card_determination
       @error = false
@@ -122,6 +132,16 @@ module Banking
                recipient_modified_balance: recipient_modified_balance }
 
       cards.merge(cash)
+    end
+
+    def current_account_update(account)
+      current_account = @storage.user_account(account.login, account.password)
+
+      return puts(current_account[:message]) if current_account[:error]
+
+      @current_account = current_account[:account]
+      @card.current_account = @current_account
+      @cashflow.current_account = @current_account
     end
   end
 end

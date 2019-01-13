@@ -25,16 +25,10 @@ module Banking
 
     def create_card(card_type)
       if %w[usual capitalist virtual].include?(card_type)
-        case card_type
-        when 'usual' then card = generate_card('usual', 50.00)
-        when 'capitalist' then card = generate_card('capitalist', 100.00)
-        when 'virtual' then card = generate_card('virtual', 150.00)
-        end
-
-        cards = @current_account.card << card
+        cards = @current_account.card << card_menu(card_type)
         @current_account.card = cards
 
-        @storage.update_data(@current_account)
+        @storage.update_account(@current_account)
 
         false
       else
@@ -44,18 +38,17 @@ module Banking
 
     def destroy_card_list
       @card_any_exists = false
-      if @current_account.card.any?
-        cards_list_print = "If you want to delete:\n"
 
-        @current_account.card.each_with_index do |c, i|
-          cards_list_print += "- #{c[:number]}, #{c[:type]}, press #{i + 1}" + "\n"
-        end
-        cards_list_print += "press `exit` to exit\n"
-        @card_any_exists = true
-        cards_list_print
-      else
-        "There is no active cards!\n"
+      return puts("There is no active cards!\n") unless @current_account.card.any?
+
+      cards_list_print = "If you want to delete:\n"
+
+      @current_account.card.each_with_index do |c, i|
+        cards_list_print += "- #{c[:number]}, #{c[:type]}, press #{i + 1}" + "\n"
       end
+      cards_list_print += "press `exit` to exit\n"
+      @card_any_exists = true
+      cards_list_print
     end
 
     def card_for_destroying(answer)
@@ -70,16 +63,24 @@ module Banking
     def destroy_card(answer, delete_card)
       @card_deleted = false
 
-      if delete_card == 'y'
-        @current_account.card.delete_at(answer.to_i - 1)
+      return unless delete_card == 'y'
 
-        @storage.update_data(@current_account)
+      @current_account.card.delete_at(answer.to_i - 1)
 
-        @card_deleted = true
-      end
+      @storage.update_account(@current_account)
+
+      @card_deleted = true
     end
 
     private
+
+    def card_menu(card_type)
+      case card_type
+      when 'usual' then generate_card('usual', 50.00)
+      when 'capitalist' then generate_card('capitalist', 100.00)
+      when 'virtual' then generate_card('virtual', 150.00)
+      end
+    end
 
     def generate_card_number
       Array.new(CARD_NUMBER_LENGTH) { rand(NUMBERS_FOR_CARD) }.join

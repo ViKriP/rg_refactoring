@@ -14,16 +14,16 @@ module Banking
       @card_any_exists = false
       cards_list_print = ''
 
-      if @current_account.card.any?
-        @current_account.card.each_with_index do |c, i|
-          cards_list_print += "- #{c[:number]}, #{c[:type]}, press #{i + 1}\n"
-        end
-        cards_list_print += "press `exit` to exit\n"
-        @card_any_exists = true
-        return cards_list_print
-      else
-        return "There is no active cards!\n"
+      return "There is no active cards!\n" unless @current_account.card.any?
+
+      @current_account.card.each_with_index do |c, i|
+        cards_list_print += "- #{c[:number]}, #{c[:type]}, press #{i + 1}\n"
       end
+
+      cards_list_print += "press `exit` to exit\n"
+      @card_any_exists = true
+
+      return cards_list_print
     end
 
     def card_selection(answer)
@@ -42,16 +42,13 @@ module Banking
       end
     end
 
-    def withdraw_money(current_card, amount, answer)
+    def withdraw_money(current_card, amount)
       money_left = current_card[:balance].to_f - amount.to_f - @tax.withdraw_tax(current_card[:type], amount)
 
       if money_left.positive?
-        current_card[:balance] = money_left
-        @current_account.card[answer.to_i - 1] = current_card
+        @storage.update_card_balance(current_card[:number], money_left)
 
-        @storage.update_data(@current_account)
-
-        { message: "Money #{amount} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{'%.2f' % @tax.withdraw_tax(current_card[:type], amount)}$",
+        { message: "Money #{amount} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{@tax.withdraw_tax(current_card[:type], amount)}$",
           return: true }
       else
         { message: "You don't have enough money on card for such operation",
@@ -59,23 +56,22 @@ module Banking
       end
     end
 
-    def put_money(current_card, amount, answer)
+    def put_money(current_card, amount)
       if @tax.put_tax(current_card[:type], amount) >= amount.to_f
         'Your tax is higher than input amount'
       else
         new_money_amount = current_card[:balance].to_f + amount.to_f - @tax.put_tax(current_card[:type], amount)
-        current_card[:balance] = new_money_amount
-        @current_account.card[answer.to_i - 1] = current_card
 
-        @storage.update_data(@current_account)
+        @storage.update_card_balance(current_card[:number], new_money_amount)
 
-        "Money #{amount} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{'%.2f' % @tax.put_tax(current_card[:type], amount)}"
+        "Money #{amount} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{@tax.put_tax(current_card[:type], amount)}"
       end
     end
 
     def recipient_card_get(card_number)
       if card_number.length > 15 && card_number.length < 17
         all_cards = @storage.load_data.map(&:card).flatten
+
         if all_cards.select { |card| card[:number] == card_number }.any?
           { recipient_card: all_cards.select { |card| card[:number] == card_number }.first, error: false }
         else
@@ -88,8 +84,10 @@ module Banking
 
     def card_balance(amount, sender_card, recipient_card)
       if amount.to_f.positive?
-        { sender_modified_balance: sender_card[:balance].to_f - amount.to_f - @tax.sender_tax(sender_card[:type], amount),
-          recipient_modified_balance: recipient_card[:balance] + amount.to_f - @tax.put_tax(recipient_card[:type], amount),
+        { sender_modified_balance: sender_card[:balance].to_f - amount.to_f -
+          @tax.sender_tax(sender_card[:type], amount),
+          recipient_modified_balance: recipient_card[:balance] + amount.to_f -
+            @tax.put_tax(recipient_card[:type], amount),
           error: false }
       else
         { message: 'You entered wrong number!', error: true }
@@ -109,16 +107,13 @@ module Banking
       elsif @tax.put_tax(recipient_card[:type], amount) >= amount.to_f
         { message: 'There is no enough money on sender card', error: true }
       else
-        sender_card[:balance] = sender_modified_balance
-        @current_account.card[transaction_data[:answer].to_i - 1] = sender_card
-
-        @storage.update_data(current_account)
+        @storage.update_card_balance(sender_card[:number], sender_modified_balance)
 
         @storage.update_card_balance(recipient_card[:number], recipient_modified_balance)
 
         result_info = <<~EOF
-          Money #{amount}$ was withdrawn from #{sender_card[:number]}. Balance: #{sender_modified_balance}. Tax: #{'%.2f' % @tax.sender_tax(sender_card[:type], amount)}$
-          Money #{amount}$ was put on #{recipient_card[:number]}. Balance: #{recipient_modified_balance}. Tax: #{'%.2f' % @tax.put_tax(recipient_card[:type], amount)}$
+          Money #{amount}$ was withdrawn from #{sender_card[:number]}. Balance: #{sender_modified_balance}. Tax: #{@tax.sender_tax(sender_card[:type], amount)}$
+          Money #{amount}$ was put on #{recipient_card[:number]}. Balance: #{recipient_modified_balance}. Tax: #{@tax.put_tax(recipient_card[:type], amount)}$
         EOF
         { message: result_info, error: false }
       end

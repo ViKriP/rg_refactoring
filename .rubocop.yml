@@ -43,4 +43,7 @@ Style/RedundantFreeze:
 
 Metrics/ModuleLength:
   Exclude:
-    - 'spec/**/*.rb'    
+    - 'spec/**/*.rb'
+
+Layout/EndOfLine:
+  Enabled: false

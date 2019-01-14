@@ -25,5 +25,11 @@ module Banking
 
       0
     end
+
+    def card_tax(card, amount, type_tax)
+      return put_tax(card[:type], amount) if type_tax == 'put_tax'
+      return withdraw_tax(card[:type], amount) if type_tax == 'withdraw_tax'
+      return sender_tax(card[:type], amount) if type_tax == 'sender_tax'
+    end
   end
 end

@@ -35,30 +35,26 @@ module Banking
     end
 
     def correct_amount(amount)
-      if amount.to_f.positive?
-        { error: false }
-      else
-        { message: I18n.t(:input_amount), error: true }
-      end
+      return { message: I18n.t(:input_amount), error: true } unless amount.to_f.positive?
+
+      { error: false }
     end
 
     def withdraw_money(current_card, amount)
       money_left = change_down_balance(current_card, amount, 'withdraw_tax')
 
-      if money_left.positive?
-        @storage.update_card_balance(current_card[:number], money_left)
+      return { message: I18n.t(:not_enough_money), return: true } unless money_left.positive?
 
-        current_card[:balance] = money_left
+      @storage.update_card_balance(current_card[:number], money_left)
 
-        { message: I18n.t(:withdrawal_success, data_for_msg(current_card, amount, 'withdraw_tax')),
-          return: true }
-      else
-        { message: I18n.t(:not_enough_money), return: true }
-      end
+      current_card[:balance] = money_left
+
+      { message: I18n.t(:withdrawal_success, data_for_msg(current_card, amount, 'withdraw_tax')),
+        return: true }
     end
 
     def put_money(current_card, amount)
-      if tax_('put_tax', current_card, amount) >= amount.to_f
+      if @tax.card_tax(current_card, amount, 'put_tax') >= amount.to_f
         I18n.t(:tax_is_higher)
       else
         new_money_amount = change_up_balance(current_card, amount, 'put_tax')
@@ -72,56 +68,59 @@ module Banking
     end
 
     def recipient_card_get(card_number)
-      if card_number.length > 15 && card_number.length < 17
-        all_cards = @storage.load_data.map(&:card).flatten
+      return { message: I18n.t(:incorrect_card_number), error: true } unless card_number.length == 16
 
-        if all_cards.select { |card| card[:number] == card_number }.any?
-          { recipient_card: all_cards.select { |card| card[:number] == card_number }.first, error: false }
-        else
-          { message: I18n.t(:no_such_card, number: card_number), error: true }
-        end
-      else
-        { message: I18n.t(:incorrect_card_number), error: true }
-      end
+      current_card = @storage.card_by_number(card_number)
+
+      return { message: I18n.t(:no_such_card, number: card_number), error: true } unless current_card
+
+      { recipient_card: current_card, error: false }
     end
 
     def card_balance(amount, sender_card, recipient_card)
-      if amount.to_f.positive?
-        { sender_modified_balance: change_down_balance(sender_card, amount, 'sender_tax'),
-          recipient_modified_balance: change_up_balance(recipient_card, amount, 'put_tax'),
-          error: false }
-      else
-        { message: I18n.t(:wrong_number), error: true }
-      end
+      return { message: I18n.t(:wrong_number), error: true } unless amount.to_f.positive?
+
+      { sender_modified_balance: change_down_balance(sender_card, amount, 'sender_tax'),
+        recipient_modified_balance: change_up_balance(recipient_card, amount, 'put_tax'),
+        error: false }
     end
 
-    def send_money(transaction_data)
-      amount = transaction_data[:amount]
-      sender_card = transaction_data[:sender_card]
-      recipient_card = transaction_data[:recipient_card]
+    def send_money(data)
+      amount = data[:amount]
+      recipient_card = data[:recipient_card]
 
-      sender_modified_balance = transaction_data[:sender_modified_balance]
-      recipient_modified_balance = transaction_data[:recipient_modified_balance]
+      sender_modified_balance = data[:sender_modified_balance]
 
-      if sender_modified_balance.negative?
-        { message: I18n.t(:not_enough_money), error: true }
-      elsif tax_('put_tax', recipient_card, amount) >= amount.to_f
+      return { message: I18n.t(:not_enough_money), error: true } if sender_modified_balance.negative?
+
+      if @tax.card_tax(recipient_card, amount, 'put_tax') >= amount.to_f
         { message: I18n.t(:not_enough_money_on_sender), error: true }
       else
-        @storage.update_card_balance(sender_card[:number], sender_modified_balance)
-
-        @storage.update_card_balance(recipient_card[:number], recipient_modified_balance)
-
-        sender_card[:balance] = sender_modified_balance
-        recipient_card[:balance] = recipient_modified_balance
-
-        { message: I18n.t(:was_withdrawn, data_for_msg(sender_card, amount, 'sender_tax')) +
-          I18n.t(:was_put_on, data_for_msg(recipient_card, amount, 'put_tax')),
-          error: false }
+        sending_money(data)
       end
     end
 
     private
+
+    def sending_money(data)
+      sender_card = data[:sender_card]
+      recipient_card = data[:recipient_card]
+
+      @storage.update_card_balance(sender_card[:number], data[:sender_modified_balance])
+
+      @storage.update_card_balance(recipient_card[:number], data[:recipient_modified_balance])
+
+      sender_card[:balance] = data[:sender_modified_balance]
+      recipient_card[:balance] = data[:recipient_modified_balance]
+
+      sending_money_msg(sender_card, recipient_card, data[:amount])
+    end
+
+    def sending_money_msg(sender_card, recipient_card, amount)
+      { message: I18n.t(:was_withdrawn, data_for_msg(sender_card, amount, 'sender_tax')) +
+        I18n.t(:was_put_on, data_for_msg(recipient_card, amount, 'put_tax')),
+        error: false }
+    end
 
     def change_down_balance(card, amount, type_tax)
       change_balance(:-, card, amount, type_tax)
@@ -132,25 +131,12 @@ module Banking
     end
 
     def change_balance(change_type, card, amount, type_tax)
-      card[:balance].to_f.send(change_type, amount.to_f - tax_(type_tax, card, amount))
-    end
-
-    def tax_(type_tax, card, amount)
-      return @tax.put_tax(card[:type], amount) if type_tax == 'put_tax'
-      return @tax.withdraw_tax(card[:type], amount) if type_tax == 'withdraw_tax'
-      return @tax.sender_tax(card[:type], amount) if type_tax == 'sender_tax'
-    end
-
-    def msg_transaction_(msg_tag, card, amount, type_tax)
-      I18n.t(msg_tag, amount: amount,
-                      number: card[:number],
-                      balance: card[:balance],
-                      tax: tax_(type_tax, card, amount))
+      card[:balance].to_f.send(change_type, amount.to_f - @tax.card_tax(card, amount, type_tax))
     end
 
     def data_for_msg(card, amount, type_tax)
       { amount: amount, number: card[:number], balance: card[:balance],
-        tax: tax_(type_tax, card, amount) }
+        tax: @tax.card_tax(card, amount, type_tax) }
     end
   end
 end

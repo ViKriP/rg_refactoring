@@ -118,6 +118,10 @@ module Banking
 
       return puts(recipient_card[:message]) if recipient_card[:error]
 
+      data_cards_send(sender_card, recipient_card)
+    end
+
+    def data_cards_send(sender_card, recipient_card)
       { answer: sender_card[:answer], sender_card: sender_card[:current_card],
         recipient_card: recipient_card[:recipient_card] }
     end

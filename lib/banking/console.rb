@@ -47,7 +47,10 @@ module Banking
     def create_card
       loop do
         puts I18n.t(:card_types)
-        break unless result_card_create = @card.create_card(gets.chomp)
+
+        result_card_create = @card.create_card(gets.chomp)
+
+        break unless result_card_create
 
         puts result_card_create
       end

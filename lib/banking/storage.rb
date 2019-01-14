@@ -49,8 +49,12 @@ module Banking
     end
 
     def current_status_card(card)
-      user_of_card(card[:number]).card.each do |card_base|
-        return card if card_base[:number] == card[:number]
+      card_by_number(card[:number])
+    end
+
+    def card_by_number(number_card)
+      user_of_card(number_card).card.each do |card_base|
+        return card_base if card_base[:number] == number_card
       end
     end
 
@@ -76,11 +80,10 @@ module Banking
 
     def user_of_card(card_number)
       load_data.each do |account|
-        if account.card.map { |card| card[:number] }.include? card_number
+        next unless account.card.map { |card| card[:number] }.include?(card_number)
 
-          account.card.each do |card|
-            return account if card[:number] == card_number
-          end
+        account.card.each do |card|
+          return account if card[:number] == card_number
         end
       end
     end

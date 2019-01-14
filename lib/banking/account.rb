@@ -32,11 +32,7 @@ module Banking
 
     def age_input(age)
       @age = age
-      if @age.to_i.is_a?(Integer) && @age.to_i >= 23 && @age.to_i <= 90
-        @age = @age.to_i
-      else
-        @errors.push(I18n.t(:invalid_age))
-      end
+      @errors.push(I18n.t(:invalid_age)) unless (23..89).cover?(@age.to_i)
     end
   end
 end

@@ -1,0 +1,64 @@
+en:
+  welcome:
+    "Hello, we are RubyG bank!\n
+    - If you want to create account - press `create`\n
+    - If you want to load account - press `load`\n
+    - If you want to exit - press `exit`"
+  main_menu_message:
+    "Welcome, %{name}\n
+    If you want to:\n
+      - show all cards - press SC\n
+      - create card - press CC\n
+      - destroy card - press DC\n
+      - put money on card - press PM\n
+      - withdraw money on card - press WM\n
+      - send money to another card  - press SM\n
+      - destroy account - press `DA`\n
+      - exit from account - press `exit`"
+  card_types:
+    "You could create one of 3 card types\n\n
+    - Usual card. \n2% tax on card INCOME. \n20$ tax on SENDING money from this card. \n5% tax on WITHDRAWING money. \nFor creation this card - press `usual`\n\n
+    - Capitalist card. \n10$ tax on card INCOME. \n10% tax on SENDING money from this card. \n4$ tax on WITHDRAWING money. \nFor creation this card - press `capitalist`\n\n
+    - Virtual card. \n1$ tax on card INCOME. \n1$ tax on SENDING money from this card. \n12% tax on WITHDRAWING money. \nFor creation this card - press `virtual`\n\n
+    - For exit - press `exit`\n"
+  wrong_command: Wrong command. Try again!
+  no_accounts: "There is no active accounts, do you want to be the first?[y/n]"
+  sure_delete_account: "Are you sure you want to destroy account?[y/n]"
+  enter_name: Enter your name
+  enter_age: Enter your age
+  enter_login: Enter your login
+  enter_password: Enter your password
+  card_for_putting: "Choose the card for putting:"
+  input_putting_amount: Input the amount of money you want to put on your card
+  card_for_withdrawing: "Choose the card for withdrawing:"
+  input_withdraw_amount: Input the amount of money you want to withdraw
+  card_for_sending: "Choose the card for sending:"
+  enter_recipient_card: "Enter the recipient card:"
+  invalid_name: Your name must not be empty and starts with first upcase letter
+  login_empty: Login must present
+  login_too_short: Login must be longer then 4 symbols
+  login_too_long: Login must be shorter then 20 symbols
+  account_exists: Such account is already exists
+  password_empty: Password must present
+  password_too_short: Password must be longer then 6 symbols
+  password_too_long: Password must be shorter then 30 symbols
+  invalid_age: Your Age must be greeter then 23 and lower then 90
+  no_such_account: There is no account with given credentials
+  no_cards: "There is no active cards!\n"
+  press_exit: "press `exit` to exit\n"
+  wrong_number: "You entered wrong number\n!"
+  input_amount: You must input correct amount of money
+  withdrawal_success: "Money %{amount} withdrawed from %{number}. Money left: %{balance}$. Tax: %{tax}$"
+  not_enough_money: "You don't have enough money on card for such operation"
+  tax_is_higher: Your tax is higher than input amount
+  putting_success: "Money %{amount} was put on %{number}. Balance: %{balance}. Tax: %{tax}"
+  no_such_card: "There is no card with number %{number}\n"
+  incorrect_card_number: "Please, input correct number of card"
+  wrong_number: You entered wrong number!
+  not_enough_money: "You don't have enough money on card for such operation"
+  not_enough_money_on_sender: There is no enough money on sender card
+  was_withdrawn: "Money %{amount}$ was withdrawn from %{number}. Balance: %{balance}. Tax: %{tax}$\n"
+  was_put_on: "Money %{amount}$ was put on %{number}. Balance: %{balance}. Tax: %{tax}$"
+  wrong_card_type: "Wrong card type. Try again!\n"
+  want_to_delete: "If you want to delete:\n"
+  sure_delete_card: "Are you sure you want to delete %{card}? [y/n]"

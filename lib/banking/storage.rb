@@ -1,0 +1,91 @@
+# frozen_string_literal: true
+
+module Banking
+  class Storage
+    def load_data
+      return [] unless File.exist?(DB_PATH)
+
+      YAML.load_file(DB_PATH)
+    end
+
+    def save_data(data)
+      File.open(DB_PATH, 'w') { |f| f.write data.to_yaml }
+    end
+
+    def update_data(current_account, change = false)
+      new_accounts = []
+
+      load_data.each do |account|
+        if account.login == current_account.login
+          new_accounts.push(current_account) if change
+        else
+          new_accounts.push(account)
+        end
+      end
+
+      save_data(new_accounts)
+    end
+
+    def update_account(current_account)
+      update_data(current_account, true)
+    end
+
+    def destroy_account(current_account)
+      update_data(current_account)
+    end
+
+    def update_card_balance(card_number, card_balance)
+      new_cards = []
+      account = user_of_card(card_number)
+
+      account.card.each do |card|
+        card[:balance] = card_balance if card[:number] == card_number
+
+        new_cards.push(card)
+      end
+
+      account.card = new_cards
+      update_data(account, true)
+    end
+
+    def current_status_card(card)
+      card_by_number(card[:number])
+    end
+
+    def card_by_number(number_card)
+      user_of_card(number_card).card.each do |card_base|
+        return card_base if card_base[:number] == number_card
+      end
+    end
+
+    def account_exists?(login)
+      load_data.detect { |account_in_db| account_in_db.login == login }
+    end
+
+    def account_exists_extra?(login, password)
+      load_data.detect do |account_in_db|
+        account_in_db.login == login && account_in_db.password == password
+      end
+    end
+
+    def user_account(login, password)
+      if account_exists_extra?(login, password)
+        { account: load_data.select { |usr| login == usr.login }.first, error: false }
+      else
+        { message: I18n.t(:no_such_account), error: true }
+      end
+    end
+
+    private
+
+    def user_of_card(card_number)
+      load_data.each do |account|
+        next unless account.card.map { |card| card[:number] }.include?(card_number)
+
+        account.card.each do |card|
+          return account if card[:number] == card_number
+        end
+      end
+    end
+  end
+end

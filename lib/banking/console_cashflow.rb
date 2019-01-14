@@ -42,6 +42,16 @@ module Banking
 
     private
 
+    def current_account_update(account)
+      updated_account = @storage.user_account(account.login, account.password)
+
+      return puts(updated_account[:message]) if updated_account[:error]
+
+      @current_account = updated_account[:account]
+      @card.current_account = @current_account
+      @cashflow.current_account = @current_account
+    end
+
     def sending_money(transaction_data)
       transaction = @cashflow.send_money(transaction_data)
 
@@ -128,16 +138,6 @@ module Banking
                recipient_modified_balance: recipient_modified_balance }
 
       cards.merge(cash)
-    end
-
-    def current_account_update(account)
-      current_account = @storage.user_account(account.login, account.password)
-
-      return puts(current_account[:message]) if current_account[:error]
-
-      @current_account = current_account[:account]
-      @card.current_account = @current_account
-      @cashflow.current_account = @current_account
     end
   end
 end

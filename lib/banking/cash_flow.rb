@@ -43,15 +43,14 @@ module Banking
     end
 
     def withdraw_money(current_card, amount)
-      money_left = current_card[:balance].to_f - amount.to_f - @tax.withdraw_tax(current_card[:type], amount)
+      money_left = change_down_balance(current_card, amount, 'withdraw_tax')
 
       if money_left.positive?
         @storage.update_card_balance(current_card[:number], money_left)
 
-        { message: I18n.t(:withdrawal_success, amount: amount,
-                                               number: current_card[:number],
-                                               balance: current_card[:balance],
-                                               tax: @tax.withdraw_tax(current_card[:type], amount)),
+        current_card[:balance] = money_left
+
+        { message: I18n.t(:withdrawal_success, data_for_msg(current_card, amount, 'withdraw_tax')),
           return: true }
       else
         { message: I18n.t(:not_enough_money), return: true }
@@ -59,17 +58,16 @@ module Banking
     end
 
     def put_money(current_card, amount)
-      if @tax.put_tax(current_card[:type], amount) >= amount.to_f
+      if tax_('put_tax', current_card, amount) >= amount.to_f
         I18n.t(:tax_is_higher)
       else
-        new_money_amount = current_card[:balance].to_f + amount.to_f - @tax.put_tax(current_card[:type], amount)
+        new_money_amount = change_up_balance(current_card, amount, 'put_tax')
 
         @storage.update_card_balance(current_card[:number], new_money_amount)
 
-        I18n.t(:putting_success, amount: amount,
-                                 number: current_card[:number],
-                                 balance: current_card[:balance],
-                                 tax: @tax.put_tax(current_card[:type], amount))
+        current_card[:balance] = new_money_amount
+
+        I18n.t(:putting_success, data_for_msg(current_card, amount, 'put_tax'))
       end
     end
 
@@ -89,10 +87,8 @@ module Banking
 
     def card_balance(amount, sender_card, recipient_card)
       if amount.to_f.positive?
-        { sender_modified_balance: sender_card[:balance].to_f - amount.to_f -
-          @tax.sender_tax(sender_card[:type], amount),
-          recipient_modified_balance: recipient_card[:balance] + amount.to_f -
-            @tax.put_tax(recipient_card[:type], amount),
+        { sender_modified_balance: change_down_balance(sender_card, amount, 'sender_tax'),
+          recipient_modified_balance: change_up_balance(recipient_card, amount, 'put_tax'),
           error: false }
       else
         { message: I18n.t(:wrong_number), error: true }
@@ -109,23 +105,52 @@ module Banking
 
       if sender_modified_balance.negative?
         { message: I18n.t(:not_enough_money), error: true }
-      elsif @tax.put_tax(recipient_card[:type], amount) >= amount.to_f
+      elsif tax_('put_tax', recipient_card, amount) >= amount.to_f
         { message: I18n.t(:not_enough_money_on_sender), error: true }
       else
         @storage.update_card_balance(sender_card[:number], sender_modified_balance)
 
         @storage.update_card_balance(recipient_card[:number], recipient_modified_balance)
 
-        result_info = I18n.t(:was_withdrawn, amount: amount,
-                                             number: sender_card[:number],
-                                             balance: sender_modified_balance,
-                                             tax: @tax.sender_tax(sender_card[:type], amount)) +
-                      I18n.t(:was_put_on, amount: amount,
-                                          number: recipient_card[:number],
-                                          balance: recipient_modified_balance,
-                                          tax: @tax.put_tax(recipient_card[:type], amount))
-        { message:  result_info, error: false }
+        sender_card[:balance] = sender_modified_balance
+        recipient_card[:balance] = recipient_modified_balance
+
+        { message: I18n.t(:was_withdrawn, data_for_msg(sender_card, amount, 'sender_tax')) +
+          I18n.t(:was_put_on, data_for_msg(recipient_card, amount, 'put_tax')),
+          error: false }
       end
+    end
+
+    private
+
+    def change_down_balance(card, amount, type_tax)
+      change_balance(:-, card, amount, type_tax)
+    end
+
+    def change_up_balance(card, amount, type_tax)
+      change_balance(:+, card, amount, type_tax)
+    end
+
+    def change_balance(change_type, card, amount, type_tax)
+      card[:balance].to_f.send(change_type, amount.to_f - tax_(type_tax, card, amount))
+    end
+
+    def tax_(type_tax, card, amount)
+      return @tax.put_tax(card[:type], amount) if type_tax == 'put_tax'
+      return @tax.withdraw_tax(card[:type], amount) if type_tax == 'withdraw_tax'
+      return @tax.sender_tax(card[:type], amount) if type_tax == 'sender_tax'
+    end
+
+    def msg_transaction_(msg_tag, card, amount, type_tax)
+      I18n.t(msg_tag, amount: amount,
+                      number: card[:number],
+                      balance: card[:balance],
+                      tax: tax_(type_tax, card, amount))
+    end
+
+    def data_for_msg(card, amount, type_tax)
+      { amount: amount, number: card[:number], balance: card[:balance],
+        tax: tax_(type_tax, card, amount) }
     end
   end
 end

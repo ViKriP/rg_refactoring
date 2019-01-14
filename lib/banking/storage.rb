@@ -16,7 +16,6 @@ module Banking
       new_accounts = []
 
       load_data.each do |account|
-
         if account.login == current_account.login
           new_accounts.push(current_account) if change
         else
@@ -59,8 +58,14 @@ module Banking
       load_data.detect { |account_in_db| account_in_db.login == login }
     end
 
+    def account_exists_extra?(login, password)
+      load_data.detect do |account_in_db|
+        account_in_db.login == login && account_in_db.password == password
+      end
+    end
+
     def user_account(login, password)
-      if load_data.map { |account| { login: account.login, password: account.password } }.include?({ login: login, password: password })
+      if account_exists_extra?(login, password)
         { account: load_data.select { |usr| login == usr.login }.first, error: false }
       else
         { message: I18n.t(:no_such_account), error: true }

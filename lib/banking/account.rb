@@ -12,9 +12,7 @@ module Banking
 
     def name_input(name)
       @name = name
-      if @name.empty? || @name[0].upcase != @name[0]
-        @errors.push(I18n.t(:invalid_name))
-      end
+      @errors.push(I18n.t(:invalid_name)) if @name.empty? || @name[0].upcase != @name[0]
     end
 
     def login_input(login)

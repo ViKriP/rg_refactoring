@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-#require 'i18n'
 require 'spec_helper'
 
 module Banking
@@ -18,14 +17,6 @@ module Banking
       withdraw_amount: 'Input the amount of money you want to withdraw'
     }.freeze
 
-    HELLO_PHRASES = "Hello, we are RubyG bank!\n - If you want to create account - press `create`\n - If you want to load account - press `load`\n - If you want to exit - press `exit`".freeze
-    #HELLO_PHRASES = [
-    #  'Hello, we are RubyG bank!',
-    #  '- If you want to create account - press `create`',
-    #  '- If you want to load account - press `load`',
-    #  '- If you want to exit - press `exit`'
-    #].freeze
-
     ASK_PHRASES = {
       name: 'Enter your name',
       login: 'Enter your login',
@@ -33,17 +24,15 @@ module Banking
       age: 'Enter your age'
     }.freeze
 
-    # rubocop:disable Metrics/LineLength
+    HELLO_PHRASES = "Hello, we are RubyG bank!\n - If you want to create account - press `create`\n - If you want to load account - press `load`\n - If you want to exit - press `exit`".freeze
 
     CREATE_CARD_PHRASES = [
-     "You could create one of 3 card types\n\n",
-     " - Usual card. \n2% tax on card INCOME. \n20$ tax on SENDING money from this card. \n5% tax on WITHDRAWING money. \nFor creation this card - press `usual`\n\n",
-     " - Capitalist card. \n10$ tax on card INCOME. \n10% tax on SENDING money from this card. \n4$ tax on WITHDRAWING money. \nFor creation this card - press `capitalist`\n\n",
-     " - Virtual card. \n1$ tax on card INCOME. \n1$ tax on SENDING money from this card. \n12% tax on WITHDRAWING money. \nFor creation this card - press `virtual`\n\n",
-     " - For exit - press `exit`\n"
+      "You could create one of 3 card types\n\n",
+      " - Usual card. \n2% tax on card INCOME. \n20$ tax on SENDING money from this card. \n5% tax on WITHDRAWING money. \nFor creation this card - press `usual`\n\n",
+      " - Capitalist card. \n10$ tax on card INCOME. \n10% tax on SENDING money from this card. \n4$ tax on WITHDRAWING money. \nFor creation this card - press `capitalist`\n\n",
+      " - Virtual card. \n1$ tax on card INCOME. \n1$ tax on SENDING money from this card. \n12% tax on WITHDRAWING money. \nFor creation this card - press `virtual`\n\n",
+      " - For exit - press `exit`\n"
     ].freeze
-
-    # rubocop:enable Metrics/LineLength
 
     ACCOUNT_VALIDATION_PHRASES = {
       name: {
@@ -144,7 +133,6 @@ module Banking
         allow(current_subject).to receive_message_chain(:gets, :chomp) { 'test' }
         allow(current_subject).to receive(:exit)
         expect(current_subject).to receive(:puts).with(HELLO_PHRASES)
-        #HELLO_PHRASES.each { |phrase| expect(current_subject).to receive(:puts).with(phrase) }
         current_subject.start
       end
     end
@@ -619,7 +607,7 @@ module Banking
           expect { current_subject.destroy_card }.to change { current_subject.current_account.card.size }.by(-1)
 
           expect(File.exist?(OVERRIDABLE_FILENAME)).to be true
-          file_accounts = YAML.load_file(OVERRIDABLE_FILENAME)
+          YAML.load_file(OVERRIDABLE_FILENAME)
           expect(current_subject.current_account.card).not_to include(card_one)
         end
 
@@ -647,10 +635,6 @@ module Banking
       let(:card_two) { { number: 2, type: 'test2' } }
       let(:fake_cards) { [card_one, card_two] }
 
-      before do
-        allow(subject).to receive(:loop).and_yield
-      end
-
       context 'with correct outout' do
         it do
           allow(current_subject.current_account).to receive(:card) { fake_cards }
@@ -661,7 +645,7 @@ module Banking
 
           allow(current_subject).to receive_message_chain(:gets, :chomp) { 'exit' }
           expect { current_subject.put_money }.to output(/#{COMMON_PHRASES[:choose_card]}/).to_stdout
-          
+
           fake_cards.each_with_index do |card, i|
             message = /- #{card[:number]}, #{card[:type]}, press #{i + 1}/
             expect { current_subject.put_money }.to output(message).to_stdout
@@ -880,7 +864,7 @@ module Banking
         let(:card_1) { { type: 'capitalist', balance: 0, number: '1', login: 'a' } }
         let(:card_2) { { type: 'capitalist', balance: 200, number: '2', login: 'b' } }
         let(:fake_cards) { [card_1, card_2] }
-        
+
         after do
           File.delete(OVERRIDABLE_FILENAME) if File.exist?(OVERRIDABLE_FILENAME)
         end

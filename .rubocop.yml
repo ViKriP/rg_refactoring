@@ -11,6 +11,8 @@ RSpec/MultipleExpectations:
 
 RSpec/ExampleLength:
   Max: 10
+  Exclude:
+    - 'spec/**/*.rb'
 
 RSpec/MessageSpies:
   Enabled: false
@@ -22,9 +24,23 @@ Metrics/BlockLength:
 
 Metrics/LineLength:
   Max: 120
+  Exclude:
+    - 'spec/**/*.rb'
 
 Documentation:
   Enabled: false
 
 FrozenStringLiteralComment:
   Enabled: false
+
+Layout/IndentationConsistency:
+  Exclude:
+    - 'spec/**/*.rb'
+
+Style/RedundantFreeze:
+  Exclude:
+    - 'spec/**/*.rb'
+
+Metrics/ModuleLength:
+  Exclude:
+    - 'spec/**/*.rb'    
